@@ -1,0 +1,32 @@
+{
+    "version": 1,
+    "type": 2,
+    "token": "aW50ZXJhY3Rpb246ODA2ODQ4MTk5MTc5NTAxNTY5OmVxS3QwNmRhUnRVUEFaRkhvUWpsZVVab0w4TzJ3bjU0cTZSUWR0OXdiOVpXTTJzNGtWQXFmbUUycExwVzBJRTZ1MEp4dERoUUdEc01ONzFYb3dBend4TUtFTnhHNDRkVkVMSDBYNGlOVTVXMUNuQ2gwellUYkY0OUVBTWlzMmVz",
+    "member": {
+        "user": {
+            "username": "Bendi",
+            "public_flags": 256,
+            "id": "336233673911173120",
+            "discriminator": "2924",
+            "avatar": "8e85e44b5ff53c257b80214a64761f47"
+        },
+        "roles": [
+            "806841824353189908"
+        ],
+        "premium_since": null,
+        "permissions": "2147483647",
+        "pending": false,
+        "nick": null,
+        "mute": false,
+        "joined_at": "2020-07-29T14:19:05.569000+00:00",
+        "is_pending": false,
+        "deaf": false
+    },
+    "id": "806848199179501569",
+    "guild_id": "738037892118741163",
+    "data": {
+        "name": "ping",
+        "id": "806205374914625576"
+    },
+    "channel_id": "738037892118741167"
+}
