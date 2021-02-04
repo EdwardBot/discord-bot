@@ -1,0 +1,3 @@
+GET https://discord.com/api/v8/applications/747157043466600477/guilds/738037892118741163/commands HTTP/1.1
+Authorization: Bot NzQ3MTU3MDQzNDY2NjAwNDc3.X0KyOA.F6k64fM9fcwq1zp10R82-Yyyp5o
+Content-Type: application/json
