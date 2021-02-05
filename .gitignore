@@ -106,3 +106,6 @@ dist
 *.js
 
 botconfig.json
+./botconfig.json
+botconfig.json
+command.http

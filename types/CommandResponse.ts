@@ -20,6 +20,7 @@ export interface Data {
 export interface Option {
     value: string;
     name: string;
+    options: Option[] | null;
 }
 
 export interface Member {
