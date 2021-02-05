@@ -7,6 +7,7 @@ import * as setactivity from './commands/setactivity';
 import * as stop from './commands/stop';
 import * as meme from './commands/meme';
 import * as purge from './commands/purge';
+import * as calc from './commands/calc';
 
 const bot = new Client({
     partials: [ 'MESSAGE', 'REACTION', 'GUILD_MEMBER' ]
@@ -20,7 +21,8 @@ export const commands = [
     setactivity,
     stop,
     meme,
-    purge
+    purge,
+    calc
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, timeout: NodeJS.Timeout) {
@@ -42,7 +44,6 @@ bot.ws.on(('INTERACTION_CREATE'as any), (d,shard) => {
 });
 
 bot.on('messageReactionAdd', (reaction, user) => {
-    console.log(user.username);
     if (reaction.emoji.name == '❌') {
         if (delMsgs[reaction.message.id] == undefined) return;
         if (user.id == delMsgs[reaction.message.id].author) {
@@ -53,6 +54,10 @@ bot.on('messageReactionAdd', (reaction, user) => {
             reaction.remove()
         }
     }
+})
+
+bot.on('rateLimit', (rate) => {
+    console.log(`😒 a dc nem szeret. ${rate.limit} időre letiltotta a ${rate.route}-ot!`)
 })
 
 bot.on('ready', () => {

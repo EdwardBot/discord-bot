@@ -1,4 +1,4 @@
-import { Client, TextChannel, MessageEmbed, GuildMember } from 'discord.js';
+import { Client, TextChannel, MessageEmbed, GuildMember, Collection, Message } from 'discord.js';
 import { mkMsgDel } from '../main';
 import { CommandResponse, Member } from '../types/CommandResponse';
 
@@ -15,17 +15,48 @@ export default {
                 if (data.data.options[0].options == undefined) return sendError(tc, data.member, false);
                 if (data.data.options[0].options[0] == undefined) return sendError(tc, data.member, false);
                 const userId = data.data.options[0].options[0].value;
-                const msgs = (await tc.messages.fetch({
+                let msgs = (await tc.messages.fetch({
                     limit: 100
-                })).filter((e) => e.author.id == userId);
-                tc.bulkDelete(msgs)
-                const purgeUE = new MessageEmbed()
+                })).filter((e) => e.author.id == userId).array();
+                let last = msgs[msgs.length - 1];
+
+                const loading = new MessageEmbed()
                     .setTitle("Törlés")
-                    .addField("Üzenetek törlölve tőle:", `<@${userId}>`)
+                    .setDescription(`Törlés...`)
                     .setColor("#1dd1a1")
                     .setTimestamp(Date.now())
                     .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
-                const msg = await tc.send(purgeUE)
+                const msg = await tc.send(loading)
+
+                while (last.createdTimestamp + 1209600000 > Date.now() && msgs.length < 100) {
+                    const msgss = (await tc.messages.fetch({
+                        limit: 100,
+                        before: last.id
+                    })).filter((e) => e.author.id == userId).array();
+                    msgss.forEach((e) => msgs.push(e));
+                    if (msgs[msgs.length - 1].createdTimestamp == last.createdTimestamp) break;
+                    last = msgs[msgs.length - 1];
+                }
+                let max = Infinity;
+                if (data.data.options[0].options[1] != undefined) {
+                    try {
+                        max = Number.parseInt(data.data.options[0].options[1].value);
+                    }catch (e) {
+                        max = Infinity;
+                    }
+                }
+                for (let i = 0; i < Math.ceil(msgs.length/100); i++) {
+                        tc.bulkDelete(msgs.slice(i*100,i*100+99 > max ? max : i*100+99), true).catch((e) => {
+                            console.log(`error deleting messages: \n ${e}`);
+                        })
+                }
+                const embed = new MessageEmbed()
+                    .setTitle("Törlés")
+                    .addField(`${Math.min(msgs.length, max)} üzenet törlölve tőle:`, `<@${userId}>`)
+                    .setColor("#1dd1a1")
+                    .setTimestamp(Date.now())
+                    .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
+                await msg.edit(embed);
                 const timeout = setTimeout(() => {
                     msg.delete()
                 }, 15000);

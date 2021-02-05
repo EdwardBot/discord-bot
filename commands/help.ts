@@ -11,8 +11,9 @@ export default {
     run: function (bot: Client, tc: TextChannel, data: CommandResponse) {
         const embed = new MessageEmbed()
             .setTitle("Parancsok")
-            .setColor('#ffffff')
+            .setColor('#2ed573')
             .setTimestamp(Date.now())
+            .setAuthor('EdwardBot', bot.user.avatarURL())
             .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
         const isOwner = data.member.user.id == config.owner_id;
         commands.forEach((value) => {
