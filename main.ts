@@ -1,19 +1,40 @@
 import { Client, Message, TextChannel } from "discord.js";
 import { CommandResponse } from './types/CommandResponse';
 import * as config from './botconfig.json';
-import * as ping from './commands/ping';
-import * as help from './commands/help';
-import * as setactivity from './commands/setactivity';
-import * as stop from './commands/stop';
-import * as meme from './commands/meme';
-import * as purge from './commands/purge';
-import * as calc from './commands/calc';
+import ping from './commands/ping';
+import help from './commands/help';
+import setactivity from './commands/setactivity';
+import stop from './commands/stop';
+import meme from './commands/meme';
+import purge from './commands/purge';
+import calc from './commands/calc';
+import stats from './commands/stats';
+import kick from './commands/kick';
+import { readFile, writeFile } from 'fs/promises';
+import { noPermMsg } from "./utils";
 
 const bot = new Client({
-    partials: [ 'MESSAGE', 'REACTION', 'GUILD_MEMBER' ]
+    partials: ['MESSAGE', 'REACTION', 'GUILD_MEMBER', 'USER']
 })
 
 let delMsgs = {};
+
+export let commandsRun = 0;
+
+console.log('loading commands');
+
+readFile('./commands_run', {
+    encoding: 'utf-8'
+}).then((file) => {
+    try {
+        commandsRun = Number.parseInt(file);
+    } catch (e) { }
+})
+
+setInterval(() => {
+    writeFile('./commands_run', commandsRun + '')
+}, 20000);
+
 
 export const commands = [
     ping,
@@ -22,7 +43,9 @@ export const commands = [
     stop,
     meme,
     purge,
-    calc
+    calc,
+    stats,
+    kick
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, timeout: NodeJS.Timeout) {
@@ -33,12 +56,29 @@ export async function mkMsgDel(msg: Message, authorId: string, timeout: NodeJS.T
     };
 }
 
-bot.ws.on(('INTERACTION_CREATE'as any), (d,shard) => {
+bot.ws.on(('INTERACTION_CREATE' as any), (d, shard) => {
     const data = (d as CommandResponse);
     bot.channels.fetch(data.channel_id).then(async (ch) => {
         if (ch.isText()) {
             const tc = (ch as TextChannel);
-            commands.find((cmd) => cmd.default.id == data.data.id).default.run(bot, tc, data);
+            const user = (await bot.guilds.fetch(data.guild_id)).members.cache.get(data.member.user.id);
+            const cmd = commands.find((cmd) => cmd.id == data.data.id);
+            let hasPerm = true;
+            let noPerm = 'ADMINISTRATOR';
+            if (user == undefined || user == null) {
+                return noPermMsg(tc, data.member.user, 'LÉTEZÉS');
+            }
+            cmd.requiedPermissions.forEach((perm) => {
+                if (user == undefined || user == null) {
+                    hasPerm = false;
+                } else if (!user.hasPermission(perm)) {
+                    hasPerm = false;
+                    noPerm = perm;
+                }
+            })
+            if (hasPerm) cmd.run(bot, tc, data);
+            else noPermMsg(tc, data.member.user, noPerm)
+            commandsRun++;
         }
     })
 });
@@ -48,16 +88,16 @@ bot.on('messageReactionAdd', (reaction, user) => {
         if (delMsgs[reaction.message.id] == undefined) return;
         if (user.id == delMsgs[reaction.message.id].author) {
             reaction.message.delete()
-            clearTimeout(delMsgs[reaction.message.id].timeout)
+            if (delMsgs[reaction.message.id].timeout) clearTimeout(delMsgs[reaction.message.id].timeout)
             delMsgs[reaction.message.id] = undefined;
         } else if (delMsgs[reaction.message.id] != undefined) {
-            reaction.remove()
+            //reaction.remove()
         }
     }
 })
 
 bot.on('rateLimit', (rate) => {
-    console.log(`😒 a dc nem szeret. ${rate.limit} időre letiltotta a ${rate.route}-ot!`)
+    console.log(`😒 a dc nem szeret. ${rate.limit} másodpercre letiltotta a ${rate.route}-ot!`)
 })
 
 bot.on('ready', () => {

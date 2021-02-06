@@ -8,6 +8,7 @@ export default {
     description: 'Leállítja a botot. Csak bendi használhatja!',
     id: '806885958221824102',
     requiesOwner: true,
+    requiedPermissions: [],
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
         if (data.member.user.id != config.owner_id) {
             noPermMsg(tc, data.member.user, `BOT_TULAJ`);

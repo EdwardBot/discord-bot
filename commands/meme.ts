@@ -8,6 +8,7 @@ export default {
     description: 'Küld egy random mémet.',
     id: '806905285976784969',
     requiesOwner: false,
+    requiedPermissions: [],
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
         const embed = new MessageEmbed()
             .setTitle("Meme")

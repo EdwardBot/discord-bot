@@ -9,6 +9,7 @@ export default {
     description: 'Beállítja a bot elfoglaltságát. Csak Bendi használhatja!',
     id: '806853316474699796',
     requiesOwner: true,
+    requiedPermissions: [],
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
         if (data.member.user.id != config.owner_id) {
             noPermMsg(tc, data.member.user, `BOT_TULAJ`);

@@ -8,6 +8,7 @@ export default {
     description: 'Kiszámol egy műveletet.',
     id: '807223957685403648',
     requiesOwner: false,
+    requiedPermissions: [],
     run: function (bot: Client, tc: TextChannel, data: CommandResponse) {
         if (data.data.options == undefined) return sendError(tc, data.member)
         let res;
