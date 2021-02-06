@@ -1,20 +1,20 @@
 {
-  "name": "edward",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {
-    "@ipmanlk/reddit-simple": "^2.2.1",
-    "@types/node": "^14.14.22",
-    "discord.js": "^12.5.1",
-    "mathjs": "^9.2.0"
-  },
-  "devDependencies": {
-    "@types/mathjs": "^6.0.11"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Bendi",
-  "license": "MIT"
+    "name": "edward",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.js",
+    "dependencies": {
+        "@ipmanlk/reddit-simple": "^2.2.1",
+        "@types/node": "^14.14.22",
+        "discord.js": "^12.5.1",
+        "mathjs": "^9.2.0"
+    },
+    "devDependencies": {
+        "@types/mathjs": "^6.0.11"
+    },
+    "scripts": {
+        "run": "node main.js"
+    },
+    "author": "Bendi",
+    "license": "MIT"
 }

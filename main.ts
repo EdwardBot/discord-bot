@@ -9,6 +9,7 @@ import meme from './commands/meme';
 import purge from './commands/purge';
 import calc from './commands/calc';
 import stats from './commands/stats';
+import serverInfo from './commands/server-info';
 import kick from './commands/kick';
 import { readFile, writeFile } from 'fs/promises';
 import { noPermMsg } from "./utils";
@@ -45,7 +46,8 @@ export const commands = [
     purge,
     calc,
     stats,
-    kick
+    kick,
+    serverInfo
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, timeout: NodeJS.Timeout) {

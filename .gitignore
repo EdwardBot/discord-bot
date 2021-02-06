@@ -108,4 +108,8 @@ dist
 botconfig.json
 ./botconfig.json
 botconfig.json
-command.http
+*.http
+
+build/
+bot*.json
+commands_run
