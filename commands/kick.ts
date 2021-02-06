@@ -1,12 +1,12 @@
-import { Client, TextChannel, MessageEmbed } from 'discord.js';
+import { Client, TextChannel, MessageEmbed, PermissionString } from 'discord.js';
 import { CommandResponse } from '../types/CommandResponse';
 
 export default {
-    name: 'ping',
-    description: 'Kiírja a bot pingjét',
-    id: '806205374914625576',
+    name: 'kick',
+    description: 'Kirúg egy embert.',
+    id: '807565939200753666',
     requiesOwner: false,
-    requiedPermissions: [],
+    requiedPermissions: [ ('KICK_MEMBERS' as PermissionString) ],
     run: function (bot: Client, tc: TextChannel, data: CommandResponse) {
         const pingE = new MessageEmbed()
             .setTitle("Ping")
