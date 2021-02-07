@@ -23,27 +23,27 @@ export default {
         const ip = data.data.options[0].value;
         let hostname = ip;
         let port = 25565;
+        let hasPort = false;
         if (ip.includes(':')) {
+            hasPort = true;
             const arr = ip.split(':');
             hostname = arr[0];
             port = Number.parseInt(arr[1]);
         }
 
-        await getStatus(hostname, port, {
-            checkPing: true
-        }).then((status) => {
+        (hasPort ? getStatus(hostname, port) : getStatus(hostname)).then((status) => {
             embed.setDescription('')
                 .addField(`Ping:`, `${status.ping}ms`)
-                .addField(`Leírás:`, status.description.replace(/\xA7[0-9A-FK-OR]+/g, ""))
+                .addField(`Leírás:`, ((status.description as any).text ? (status.description as any).text : (status.description as any).extra[0].text).replace(/\xA7[0-9A-FK-OR]+/g, ""))
                 .addField(`Verzió:`, status.version.name)
                 .addField(`Játékosok:`, `${status.players.online}/${status.players.max}`)
-                .addField(`Ip:`, `${hostname}:${ip}`)
+                .addField(`Ip:`, `${hostname}${hasPort ? `:${port}` : ``}`)
             //.setThumbnail(status.favicon)
             msg.edit(embed);
         }).catch((err) => {
             embed.setDescription('Lekérdezési hiba!')
                 .setColor('RED')
-                .addField(`Ip:`, `${hostname}:${port}`)
+                .addField(`Ip:`, `${hostname}${hasPort ? `:${port}` : ``}`)
 
             msg.edit(embed);
         });

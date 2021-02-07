@@ -11,6 +11,8 @@ import stats from './commands/stats';
 import serverInfo from './commands/server-info';
 import kick from './commands/kick';
 import mcserver from './commands/mcserver';
+import coinflip from './commands/coinflip';
+import howgay from './commands/howgay';
 import { readFile, writeFile } from 'fs/promises';
 import { noPermMsg } from "./utils";
 import { config } from 'dotenv';
@@ -53,7 +55,9 @@ export const commands = [
     stats,
     kick,
     serverInfo,
-    mcserver
+    mcserver,
+    coinflip,
+    howgay
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, timeout: NodeJS.Timeout) {
