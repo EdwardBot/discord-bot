@@ -6,7 +6,7 @@ import * as config from '../botconfig.json';
 export default {
     name: 'help',
     description: 'Kiírja a segítség menüt',
-    id: '806205431058792469',
+    id: '807642547828555796',
     requiesOwner: false,
     requiedPermissions: [],
     run: function (bot: Client, tc: TextChannel, data: CommandResponse) {

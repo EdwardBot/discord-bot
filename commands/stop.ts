@@ -6,7 +6,7 @@ import { noPermMsg } from '../utils';
 export default {
     name: 'stop',
     description: 'Leállítja a botot. Csak bendi használhatja!',
-    id: '806885958221824102',
+    id: '807647846807240704',
     requiesOwner: true,
     requiedPermissions: [],
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {

@@ -6,7 +6,7 @@ import { commandsRun, mkMsgDel } from '../main';
 export default {
     name: 'infó',
     description: 'A bot statisztikái.',
-    id: '807548232292630548',
+    id: '807649457474240522',
     requiesOwner: false,
     requiedPermissions: [],
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {

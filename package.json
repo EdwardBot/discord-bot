@@ -7,10 +7,12 @@
         "@ipmanlk/reddit-simple": "^2.2.1",
         "@types/node": "^14.14.22",
         "discord.js": "^12.5.1",
-        "mathjs": "^9.2.0"
+        "mathjs": "^9.2.0",
+        "mc-server-status": "^2.0.2"
     },
     "devDependencies": {
-        "@types/mathjs": "^6.0.11"
+        "@types/mathjs": "^6.0.11",
+        "dotenv": "^8.2.0"
     },
     "scripts": {
         "run": "node main.js"

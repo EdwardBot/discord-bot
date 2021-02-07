@@ -27,7 +27,7 @@ export default {
     }
 }
 
-const subreddits = ['dankmemes', 'holdup', 'cursedcomments', 'memes']
+const subreddits = ['dankmemes', 'holdup', 'cursedcomments', 'memes', 'programmerHumor']
 
 interface MemeResponse {
     img: string;
@@ -42,5 +42,6 @@ async function findMeme(): Promise<MemeResponse> {
         title: meme[0].data.title,
         url: 'https://reddit.com' + meme[0].data.permalink
     }
+    if (!m.img) return findMeme();
     return m;
 }

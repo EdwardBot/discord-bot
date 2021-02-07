@@ -1,6 +1,5 @@
 import { Client, Message, TextChannel } from "discord.js";
 import { CommandResponse } from './types/CommandResponse';
-import * as config from './botconfig.json';
 import ping from './commands/ping';
 import help from './commands/help';
 import setactivity from './commands/setactivity';
@@ -11,8 +10,14 @@ import calc from './commands/calc';
 import stats from './commands/stats';
 import serverInfo from './commands/server-info';
 import kick from './commands/kick';
+import mcserver from './commands/mcserver';
 import { readFile, writeFile } from 'fs/promises';
 import { noPermMsg } from "./utils";
+import { config } from 'dotenv';
+
+config({
+    path: './.env'
+});
 
 const bot = new Client({
     partials: ['MESSAGE', 'REACTION', 'GUILD_MEMBER', 'USER']
@@ -47,7 +52,8 @@ export const commands = [
     calc,
     stats,
     kick,
-    serverInfo
+    serverInfo,
+    mcserver
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, timeout: NodeJS.Timeout) {
@@ -112,4 +118,4 @@ bot.on('ready', () => {
     })
 })
 
-bot.login(config.token)
+bot.login(process.env.TOKEN)

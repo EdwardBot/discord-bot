@@ -105,11 +105,8 @@ dist
 
 *.js
 
-botconfig.json
-./botconfig.json
-botconfig.json
 *.http
+http/
 
 build/
-bot*.json
 commands_run
