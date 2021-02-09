@@ -10,6 +10,7 @@ export default {
     requiesOwner: false,
     requiedPermissions: [],
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
+        const uptime = process.uptime();
         const stats = new MessageEmbed()
             .setTitle("Statisztikák")
             .addField("A bot pingje:", `${bot.ws.ping}ms`)
@@ -17,7 +18,7 @@ export default {
             .addField(`NodeJS verzió:`, process.version)
             .addField(`Futtató operációs rendszer:`, version())
             .addField(`Memória használat:`, `${(process.memoryUsage().heapUsed/1024/1024).toFixed(3)}Mb`)
-            .addField(`Futásidő:`, process.uptime()/60 > 60 ? (process.uptime()/60/60).toFixed(3) + 'óra' : (process.uptime()/60).toFixed(3) + 'perc')
+            .addField(`Futásidő:`, `${uptime / 60 / 60 >= 1 ? `${Math.floor(uptime / 60 / 60)}óra ` : ''}${Math.floor(uptime / 60)}perc`)
             .addField(`Ennyi szerveren van bent a bot:`, bot.guilds.cache.size)
             .addField(`Parancsok lefuttatva a kezdetektől:`, commandsRun)
             .setTimestamp(Date.now())

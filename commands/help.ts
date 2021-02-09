@@ -19,13 +19,13 @@ export default {
         const isOwner = data.member.user.id == config.owner_id;
         const user = tc.guild.member(data.member.user.id);
         commands.forEach((value) => {
-            
-            if ((value.requiesOwner && isOwner) || !value.requiesOwner) {  
+
+            if ((value.requiesOwner && isOwner) || !value.requiesOwner) {
                 let hasPerm = true;
                 value.requiedPermissions.forEach((perm) => {
                     if (user == undefined || user == null) {
                         hasPerm = false;
-                    }else if (!user.hasPermission(perm)) hasPerm = false;
+                    } else if (!user.hasPermission(perm)) hasPerm = false;
                 })
                 if (hasPerm) embed.addField(`/${value.name}:`, value.description)
             }
