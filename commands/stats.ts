@@ -25,6 +25,6 @@ export default {
             .setColor('#feca57')
             .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
         const msg = await tc.send(stats);
-        mkMsgDel(msg, data.member.user.id, null);
+        mkMsgDel(msg, data.member.user.id);
     }
 }

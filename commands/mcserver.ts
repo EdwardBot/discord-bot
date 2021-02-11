@@ -65,5 +65,5 @@ async function sendError(tc: TextChannel, member: Member) {
     const timeout = setTimeout(() => {
         msg.delete()
     }, 15000);
-    mkMsgDel(msg, member.user.id, timeout.ref());
+    mkMsgDel(msg, member.user.id);
 }
