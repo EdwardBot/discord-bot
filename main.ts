@@ -84,9 +84,8 @@ async function initCommandsRun() {
 async function cleanDb() {
     let cutoff = new Date();
     cutoff.setDate(cutoff.getDate()-1);
-    DeletableResponse.find({creationDate: {$lt: cutoff}}, function (err, docs) { 
+    DeletableResponse.find({createdAt: {$lte: cutoff.getTime()}}, function (err, docs) { 
         if (err) console.log(err);
-        console.log(docs);
         DeletableResponse.deleteMany(docs); 
     })
 }
@@ -113,7 +112,8 @@ export async function mkMsgDel(msg: Message, authorId: string, canDelete?: strin
     if (canDelete) canDelete.push(authorId);
     await new DeletableResponse({
         messageId: msg.id,
-        canClose: canDelete ? canDelete : [authorId]
+        canClose: canDelete ? canDelete : [authorId],
+        createdAt: Date.now()
     }).save();
 }
 

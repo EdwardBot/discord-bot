@@ -8,9 +8,11 @@ const cModel = new Schema({
     canClose: {
         type: Array,
         requied: true
+    },
+    createdAt: {
+        type: Number,
+        required: true
     }
-}, {
-    timestamps: true
 });
 
 export default model('DeletableMsg', cModel);
