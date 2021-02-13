@@ -1,18 +1,20 @@
-import { Client, TextChannel, MessageEmbed } from 'discord.js';
-import { CommandResponse, Member } from '../types/CommandResponse';
-import { getStatus } from 'mc-server-status';
-import { mkMsgDel } from '../main';
+import { Client, TextChannel, MessageEmbed } from 'discord.js'
+import { CommandResponse, Member } from '../types/CommandResponse'
+import { getStatus } from 'mc-server-status'
+import { mkMsgDel } from '../main'
+import { CommandCategory } from '../types/CommandTypes'
 
 export default {
-    name: 'mcszerver',
-    description: 'Lekéri egy Minecraft szerver státuszát.',
-    id: '807671297504706560',
+    name: `mcszerver`,
+    description: `Lekéri egy Minecraft szerver státuszát.`,
+    id: `807671297504706560`,
     requiesOwner: false,
     requiedPermissions: [],
+    category: CommandCategory.MISC,
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
         const embed = new MessageEmbed()
             .setTitle("Minecraft Szerver Infó")
-            .setDescription('Lekérdezés...')
+            .setDescription(`Lekérdezés...`)
             .setTimestamp(Date.now())
             .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
         const msg = await tc.send(embed)
@@ -24,15 +26,15 @@ export default {
         let hostname = ip;
         let port = 25565;
         let hasPort = false;
-        if (ip.includes(':')) {
+        if (ip.includes(`:`)) {
             hasPort = true;
-            const arr = ip.split(':');
+            const arr = ip.split(`:`);
             hostname = arr[0];
             port = Number.parseInt(arr[1]);
         }
 
         (hasPort ? getStatus(hostname, port) : getStatus(hostname)).then((status) => {
-            embed.setDescription('')
+            embed.setDescription(``)
                 .addField(`Ping:`, `${status.ping}ms`)
                 .addField(`Leírás:`, ((status.description as any).text ? (status.description as any).text : (status.description as any).extra[0].text).replace(/\xA7[0-9A-FK-OR]+/g, ""))
                 .addField(`Verzió:`, status.version.name)
@@ -41,14 +43,12 @@ export default {
             //.setThumbnail(status.favicon)
             msg.edit(embed);
         }).catch((err) => {
-            embed.setDescription('Lekérdezési hiba!')
-                .setColor('RED')
+            embed.setDescription(`Lekérdezési hiba!`)
+                .setColor(`RED`)
                 .addField(`Ip:`, `${hostname}${hasPort ? `:${port}` : ``}`)
 
             msg.edit(embed);
         });
-
-
     }
 }
 
@@ -56,10 +56,10 @@ async function sendError(tc: TextChannel, member: Member) {
     const purgeCE = new MessageEmbed()
         .setTitle("Hiba")
         .setTimestamp(Date.now())
-        .setColor('RED')
+        .setColor(`RED`)
         .setFooter(`Lefuttatta: ${member.user.username}#${member.user.discriminator}`);
 
-    purgeCE.setDescription('Használd így: `/mcszerver <ip>`')
+    purgeCE.setDescription(`Használd így: \`/mcszerver <ip>\``)
 
     const msg = await tc.send(purgeCE)
     const timeout = setTimeout(() => {

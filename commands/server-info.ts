@@ -1,12 +1,14 @@
 import { Client, TextChannel, MessageEmbed } from 'discord.js';
 import { CommandResponse } from '../types/CommandResponse';
+import { CommandCategory } from '../types/CommandTypes';
 
 export default {
-    name: 'szerverinfó',
-    description: 'Kiírja a szerver információit.',
-    id: '807650084006789140',
+    name: `szerverinfó`,
+    description: `Kiírja a szerver információit.`,
+    id: `807650084006789140`,
     requiesOwner: false,
     requiedPermissions: [],
+    category: CommandCategory.INFO,
     run: function (bot: Client, tc: TextChannel, data: CommandResponse) {
         const user = tc.guild.members.cache.get(data.member.user.id);
 
@@ -28,7 +30,7 @@ export default {
             .setTimestamp(Date.now())
             .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
 
-        if (user.hasPermission('MANAGE_GUILD')) {
+        if (user.hasPermission(`MANAGE_GUILD`)) {
             embed.setURL(`https://dashboard.edwardbot.tk/g/${tc.guild.id}?ref=srvinf&user=${user.user.id}`)
         }
         tc.send(embed);

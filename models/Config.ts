@@ -11,4 +11,4 @@ const cModel = new Schema({
     }
 });
 
-export default model('config', cModel);
+export default model(`config`, cModel);

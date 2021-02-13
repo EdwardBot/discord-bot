@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed, TextChannel } from "discord.js"
+import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
 import { CommandResponse } from './types/CommandResponse'
 import { connect } from 'mongoose'
 import ping from './commands/ping'
@@ -15,19 +15,18 @@ import mcserver from './commands/mcserver'
 import coinflip from './commands/coinflip'
 import howgay from './commands/howgay'
 import covid from './commands/covid'
-import { noPermMsg } from "./utils"
+import { noPermMsg } from './utils'
 import { config } from 'dotenv'
-import Config from "./models/Config"
-import axios from "axios"
-import DeletableResponse from "./models/DeletableResponse"
-import { electronMassDependencies } from "mathjs"
+import Config from './models/Config'
+import DeletableResponse from './models/DeletableResponse'
+import GuildConfig from './models/GuildConfig'
 
 config({
-    path: './.env'
+    path: `./.env`
 });
 
 const bot = new Client({
-    partials: ['MESSAGE', 'REACTION', 'GUILD_MEMBER', 'USER']
+    partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`]
 })
 
 let delMsgs = {}
@@ -36,18 +35,18 @@ export let commandsRun = 0
 
 async function connectDB() {
     console.log(`Connecting to the db.`)
-    connect('mongodb://localhost:27017/edward', {
-        appname: 'EdwardBot',
+    connect(`mongodb://localhost:27017/edward`, {
+        appname: `EdwardBot`,
         useNewUrlParser: true,
         useUnifiedTopology: true
     }, (err) => {
         if (err) {
-            console.log('Db connection lost, reconnecting!');
+            console.log(`Db connection lost, reconnecting!`);
             const embed = new MessageEmbed()
-                .setTitle('Debug')
-                .setColor('RED')
+                .setTitle(`Debug`)
+                .setColor(`RED`)
                 .setDescription(`Db connection lost, reconnecting!${err ? `\nError: ${err.message}` : ``}`);
-            (bot.channels.cache.get('809097196267372555') as TextChannel).send(embed);
+            (bot.channels.cache.get(`809097196267372555`) as TextChannel).send(embed);
             setTimeout(() => connectDB(), 1000);
         } else {
             console.log(`Connected to the db.`);
@@ -83,11 +82,12 @@ async function initCommandsRun() {
 
 async function cleanDb() {
     let cutoff = new Date();
-    cutoff.setDate(cutoff.getDate()-1);
-    DeletableResponse.find({createdAt: {$lte: cutoff.getTime()}}, function (err, docs) { 
+    cutoff.setHours(cutoff.getHours() - 1)
+    DeletableResponse.find({ createdAt: { $lte: cutoff.getTime() } }, (err, docs) => {
         if (err) console.log(err);
-        DeletableResponse.deleteMany(docs); 
+        DeletableResponse.deleteMany(docs);
     })
+    setTimeout(() => cleanDb(), 150000)
 }
 
 export const commands = [
@@ -108,7 +108,7 @@ export const commands = [
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, canDelete?: string[]) {
-    await msg.react('❌');
+    await msg.react(`❌`);
     if (canDelete) canDelete.push(authorId);
     await new DeletableResponse({
         messageId: msg.id,
@@ -117,7 +117,7 @@ export async function mkMsgDel(msg: Message, authorId: string, canDelete?: strin
     }).save();
 }
 
-bot.ws.on(('INTERACTION_CREATE' as any), async (d, shard) => {
+bot.ws.on((`INTERACTION_CREATE` as any), async (d, shard) => {
     const data = (d as CommandResponse);
     if (data.type == 1) {
         (bot as any).api.interactions(d.id, data.token).callback.post({
@@ -127,6 +127,16 @@ bot.ws.on(('INTERACTION_CREATE' as any), async (d, shard) => {
         })
         return;
     }
+    const cmd = commands.find((cmd) => cmd.id == data.data.id);
+    if (cmd == undefined) {
+        await (bot as any).api.interactions(d.id, data.token).callback.post({
+            data: {
+                type: 3
+            }
+        });
+        return;
+    }
+
     const ch = bot.channels.cache.get(data.channel_id);
 
     await (bot as any).api.interactions(d.id, data.token).callback.post({
@@ -137,11 +147,10 @@ bot.ws.on(('INTERACTION_CREATE' as any), async (d, shard) => {
 
     const tc = (ch as TextChannel);
     const user = (await bot.guilds.fetch(data.guild_id)).members.cache.get(data.member.user.id);
-    const cmd = commands.find((cmd) => cmd.id == data.data.id);
     let hasPerm = true;
-    let noPerm = 'ADMINISTRATOR';
+    let noPerm = `ADMINISTRATOR`;
     if (user == undefined || user == null) {
-        return noPermMsg(tc, data.member.user, 'LÉTEZÉS');
+        return noPermMsg(tc, data.member.user, `LÉTEZÉS`);
     }
     cmd.requiedPermissions.forEach((perm) => {
         if (user == undefined || user == null) {
@@ -156,14 +165,14 @@ bot.ws.on(('INTERACTION_CREATE' as any), async (d, shard) => {
     commandsRun++;
 });
 
-bot.on('messageReactionAdd', async (reaction, user) => {
-    if (reaction.emoji.name == '❌') {
+bot.on(`messageReactionAdd`, async (reaction, user) => {
+    if (reaction.emoji.name == `❌`) {
         const res = await DeletableResponse.findOne({
             messageId: reaction.message.id
         });
         if (res) {
             if ((res.toObject() as any).canClose.includes(user.id)
-                || reaction.message.guild.members.cache.get(user.id).hasPermission('ADMINISTRATOR')) {
+                || reaction.message.guild.members.cache.get(user.id).hasPermission(`ADMINISTRATOR`)) {
                 reaction.message.delete()
                 res.deleteOne();
             } else {
@@ -173,19 +182,67 @@ bot.on('messageReactionAdd', async (reaction, user) => {
     }
 })
 
-bot.on('rateLimit', (rate) => {
+bot.on(`rateLimit`, (rate) => {
     console.log(`😒 a dc nem szeret. ${rate.limit} másodpercre letiltotta a ${rate.route}-ot!`)
 })
 
-bot.on('ready', async () => {
+bot.on(`guildCreate`, (guild) => {
+    new GuildConfig({
+        guildId: guild.id,
+        joinedAt: Date.now(),
+        allowLogging: false,
+        allowWelcome: false,
+        botAdmins: [guild.ownerID]
+    }).save();
+    const welcome = new MessageEmbed()
+        .setTitle(`Üdvözöllek! <a:aWave:810086084343365662>`)
+        .setDescription(`Köszi hogy hozzáadtál a szerveredhez!\n> Segítséget találhatsz a discord szerverünkön, vagy a dashboardunkon.\nA prefix /`)
+        .setFooter(`EdwardBot`, bot.user.avatarURL())
+    guild.systemChannel ? guild.systemChannel.send(welcome) : ``;
+    bot.user.setPresence({
+        activity: {
+            name: `a parancsokat ${bot.guilds.cache.size} szerveren | /help`,
+            type: `WATCHING`
+        }
+    })
+})
+
+bot.on(`guildDelete`, async (guild) => {
+    (await GuildConfig.findOne({
+        guildId: guild.id
+    })).deleteOne();
+    bot.user.setPresence({
+        activity: {
+            name: `a parancsokat ${bot.guilds.cache.size} szerveren | /help`,
+            type: `WATCHING`
+        }
+    })
+})
+
+bot.on(`ready`, async () => {
     console.log(`Logged in as ${bot.user.username}#${bot.user.discriminator}`)
     bot.user.setPresence({
         activity: {
             name: `a parancsokat ${bot.guilds.cache.size} szerveren | /help`,
-            type: 'WATCHING'
+            type: `WATCHING`
         }
     })
     connectDB();
+    //bot.guilds.cache.forEach(async (guild) => {
+    //    const d = await GuildConfig.findOne({
+    //        guildId: guild.id
+    //    });
+    //    if (!d) {
+    //        console.log(`gen for ${guild.name}`)
+    //        new GuildConfig({
+    //            guildId: guild.id,
+    //            joinedAt: Date.now(),
+    //            allowLogging: false,
+    //            allowWelcome: false,
+    //            botAdmins: [guild.ownerID]
+    //        }).save();
+    //    }
+    //})
 })
 
 bot.login(process.env.TOKEN)

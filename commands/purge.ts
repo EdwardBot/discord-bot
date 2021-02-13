@@ -1,13 +1,15 @@
 import { Client, TextChannel, MessageEmbed, PermissionString } from 'discord.js';
 import { mkMsgDel } from '../main';
 import { CommandResponse, Member } from '../types/CommandResponse';
+import { CommandCategory } from '../types/CommandTypes';
 
 export default {
-    name: 'törlés',
-    description: 'Kitöröl x üzenetet.',
-    id: '806944077560021003',
+    name: `törlés`,
+    description: `Kitöröl x üzenetet.`,
+    id: `806944077560021003`,
     requiesOwner: false,
-    requiedPermissions: [ ('MANAGE_MESSAGES' as PermissionString)],
+    requiedPermissions: [ (`MANAGE_MESSAGES` as PermissionString)],
+    category: CommandCategory.MODERATION,
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
         switch (data.data.options[0].name) {
             case "felhasználó":
@@ -121,9 +123,9 @@ async function sendError(tc: TextChannel, member: Member, isC: boolean) {
         .setTimestamp(Date.now())
         .setFooter(`Lefuttatta: ${member.user.username}#${member.user.discriminator}`);
     if (isC) {
-        purgeCE.setDescription('Használd így: `/törlés szám <darab>`')
+        purgeCE.setDescription(`Használd így: \`/törlés szám <darab>\``);
     } else {
-        purgeCE.setDescription('Használd így: `/törlés felhasználó <@valaki>`')
+        purgeCE.setDescription(`Használd így: \`/törlés felhasználó <@valaki>\``)
     }
     const msg = await tc.send(purgeCE)
     mkMsgDel(msg, member.user.id);

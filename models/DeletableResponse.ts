@@ -15,4 +15,4 @@ const cModel = new Schema({
     }
 });
 
-export default model('DeletableMsg', cModel);
+export default model(`DeletableMsg`, cModel);

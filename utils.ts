@@ -6,7 +6,7 @@ export async function noPermMsg(tc: TextChannel, user: User, perm: string) {
     const embed = new MessageEmbed()
     .setDescription(`Nincs jogod ehez!\nHiányzik a \`${perm}\` jogosúltságod`)
     .setTitle(`Hiba!`)
-    .setColor('RED')
+    .setColor(`RED`)
     .setTimestamp(Date.now())
     .setFooter(`Lefuttatta: ${user.username}#${user.discriminator}`);
     tc.startTyping();
