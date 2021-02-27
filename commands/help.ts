@@ -2,7 +2,7 @@ import { Client, TextChannel, MessageEmbed } from 'discord.js'
 import { CommandResponse } from '../types/CommandResponse'
 import { commands, mkMsgDel } from '../main'
 import * as config from '../botconfig.json'
-import { CommandCategory } from '../types/CommandTypes'
+import { categories, CommandCategory } from '../types/CommandTypes'
 
 export default {
     name: `help`,
@@ -72,6 +72,20 @@ export default {
                         break;
                 }
                 break;
+
+            case `parancsok`:
+                if (data.data.options[0].options) {
+
+                } else {
+                    categories.forEach((cat) => {
+                        let tmp = "";
+                        const cmds = getCommandsForCategory(cat);
+                        if (cmds.length == 0) return;
+                        cmds.forEach((cmd) => tmp += cmd.name + `\n`);
+                        embed.addField(cat.toString(), `\`\`\`${tmp}\`\`\``, true)
+                    })
+                }
+                break;
         }
         //const isOwner = data.member.user.id == config.owner_id;
         //const user = tc.guild.member(data.member.user.id);
@@ -90,4 +104,8 @@ export default {
 
         mkMsgDel(await tc.send(embed), data.member.user.id)
     }
+}
+
+function getCommandsForCategory(category: CommandCategory): any[] {
+    return commands.filter((cmd) => cmd.category == category);
 }

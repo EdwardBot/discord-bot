@@ -15,6 +15,7 @@ import mcserver from './commands/mcserver'
 import coinflip from './commands/coinflip'
 import howgay from './commands/howgay'
 import covid from './commands/covid'
+import anime from './commands/anime'
 import { noPermMsg } from './utils'
 import { config } from 'dotenv'
 import Config from './models/Config'
@@ -28,6 +29,8 @@ config({
 const bot = new Client({
     partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`]
 })
+
+
 
 let delMsgs = {}
 
@@ -83,10 +86,9 @@ async function initCommandsRun() {
 async function cleanDb() {
     let cutoff = new Date();
     cutoff.setHours(cutoff.getHours() - 1)
-    DeletableResponse.find({ createdAt: { $lte: cutoff.getTime() } }, (err, docs) => {
-        if (err) console.log(err);
-        DeletableResponse.deleteMany(docs);
-    })
+    DeletableResponse.deleteMany({ createdAt: { $lte: cutoff.getTime() } }).then((res) => {
+        console.log(`Succesfully deleted ${res.deletedCount} documents!`)
+    });
     setTimeout(() => cleanDb(), 150000)
 }
 
@@ -104,7 +106,8 @@ export const commands = [
     mcserver,
     coinflip,
     howgay,
-    covid
+    covid,
+    anime
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, canDelete?: string[]) {
