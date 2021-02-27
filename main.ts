@@ -38,7 +38,7 @@ export let commandsRun = 0
 
 async function connectDB() {
     console.log(`Connecting to the db.`)
-    connect(`mongodb://localhost:27017/edward`, {
+    connect(`${process.env.MONGODB}/edward?retryWrites=true&w=majority`, {
         appname: `EdwardBot`,
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -231,21 +231,23 @@ bot.on(`ready`, async () => {
         }
     })
     connectDB();
-    //bot.guilds.cache.forEach(async (guild) => {
-    //    const d = await GuildConfig.findOne({
-    //        guildId: guild.id
-    //    });
-    //    if (!d) {
-    //        console.log(`gen for ${guild.name}`)
-    //        new GuildConfig({
-    //            guildId: guild.id,
-    //            joinedAt: Date.now(),
-    //            allowLogging: false,
-    //            allowWelcome: false,
-    //            botAdmins: [guild.ownerID]
-    //        }).save();
-    //    }
-    //})
+    bot.guilds.cache.forEach(async (guild) => {
+        const d = await GuildConfig.findOne({
+            guildId: guild.id
+        }).catch((err) => {
+            console.log(`DB Error: ${err}`)
+        });
+        if (!d) {
+            console.log(`gen for ${guild.name}`)
+            new GuildConfig({
+                guildId: guild.id,
+                joinedAt: Date.now(),
+                allowLogging: false,
+                allowWelcome: false,
+                botAdmins: [ guild.ownerID ]
+            }).save();
+        }
+    })
 })
 
 bot.login(process.env.TOKEN)
