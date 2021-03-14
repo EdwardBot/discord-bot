@@ -16,6 +16,7 @@ import coinflip from './commands/coinflip'
 import howgay from './commands/howgay'
 import covid from './commands/covid'
 import anime from './commands/anime'
+import guildConfig from './commands/guildconfig';
 import { noPermMsg } from './utils'
 import { config } from 'dotenv'
 import Config from './models/Config'
@@ -107,7 +108,8 @@ export const commands = [
     coinflip,
     howgay,
     covid,
-    anime
+    anime,
+    guildConfig
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, canDelete?: string[]) {

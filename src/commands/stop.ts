@@ -1,6 +1,6 @@
 import { Client, TextChannel, MessageEmbed } from 'discord.js';
 import { CommandResponse } from '../types/CommandResponse';
-import * as config from '../botconfig.json';
+import * as config from '../../botconfig.json';
 import { noPermMsg } from '../utils';
 import { CommandCategory } from '../types/CommandTypes';
 

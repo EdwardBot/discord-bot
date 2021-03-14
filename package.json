@@ -14,10 +14,12 @@
     },
     "devDependencies": {
         "@types/mathjs": "^6.0.11",
-        "dotenv": "^8.2.0"
+        "dotenv": "^8.2.0",
+        "ts-node": "^9.1.1"
     },
     "scripts": {
-        "run": "node main.js"
+        "run": "tsc && node src/main.js",
+        "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/main.ts"
     },
     "author": "Bendi",
     "license": "MIT"

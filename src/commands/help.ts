@@ -1,7 +1,7 @@
 import { Client, TextChannel, MessageEmbed } from 'discord.js'
 import { CommandResponse } from '../types/CommandResponse'
 import { commands, mkMsgDel } from '../main'
-import * as config from '../botconfig.json'
+import * as config from '../../botconfig.json'
 import { categories, CommandCategory } from '../types/CommandTypes'
 
 export default {
