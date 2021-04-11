@@ -1,1 +1,0 @@
-{"version":"1.0.0","name":"edward","dependencies":{"@ipmanlk/reddit-simple":{"version":"2.2.1"},"@types/node":{"version":"14.14.35"},"axios":{"version":"0.21.1"},"discord.js":{"version":"12.5.1"},"mathjs":{"version":"9.3.0"},"mc-server-status":{"version":"2.0.2"},"mongoose":{"version":"5.12.1"}}}
