@@ -4,13 +4,19 @@ import { CommandCategory } from "../types/CommandTypes";
 const cmd = new Command()
     .setName(`test`)
     .setDescription(`Test command`)
-    .setId(`Id`)
+    .setId(`830807850006872114`)
     .addRequiredPermission(`ADD_REACTIONS`)
     .addRequiredPermission(`ATTACH_FILES`)
     .onlyOwner()
     .setCategory(CommandCategory.FUN)
     .executes(async function(ctx: CommandContext) {
-        ctx.replyMessage(`New command system do be looking kinda THICCCC`)
+        ctx.setLoading()
+        setTimeout(() => {
+            ctx.replyString(`New command system do be looking kinda THICCCC`)
+            setTimeout(() => {
+                ctx.deleteResponse()
+            }, 5000)
+        }, 1000)
     })
 
 export default cmd;

@@ -16,7 +16,12 @@ export class Bot {
     public async load() {
         console.log(`Loading EdwardBot`);
         await this.commandHandler.load();
+        this.bot.on(`ready`, () => this.ready())
+        this.bot.on(`debug`, console.log)
         this.bot.login(process.env.TOKEN)
-        console.log(`Logged in as ${this.bot?.user?.tag}`);
+    }
+
+    public async ready() {
+        console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
     }
 }
