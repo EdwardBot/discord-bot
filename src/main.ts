@@ -26,17 +26,17 @@ import GuildConfig from './models/GuildConfig'
 config({
     path: `./.env`
 });
-
+/*
 const bot = new Client({
     partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`]
 })
-
+*/
 
 
 let delMsgs = {}
 
 export let commandsRun = 0
-
+/*
 async function connectDB() {
     console.log(`Connecting to the db.`)
     connect(`${process.env.MONGODB}/edward?retryWrites=true&w=majority`, {
@@ -92,7 +92,7 @@ async function cleanDb() {
     });
     setTimeout(() => cleanDb(), 150000)
 }
-
+*/
 export const commands = [
     ping,
     help,
@@ -121,7 +121,7 @@ export async function mkMsgDel(msg: Message, authorId: string, canDelete?: strin
         createdAt: Date.now()
     }).save();
 }
-
+/*
 bot.ws.on((`INTERACTION_CREATE` as any), async (d, shard) => {
     const data = (d as CommandResponse);
     if (data.type == 1) {
@@ -252,4 +252,10 @@ bot.on(`ready`, async () => {
     })
 })
 
-bot.login(process.env.TOKEN)
+bot.login(process.env.TOKEN)*/
+
+import { Bot } from "./bot";
+
+const bot = new Bot();
+
+bot.load()
