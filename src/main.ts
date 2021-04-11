@@ -31,8 +31,6 @@ const bot = new Client({
     partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`]
 })
 
-
-
 let delMsgs = {}
 
 export let commandsRun = 0
