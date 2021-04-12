@@ -113,6 +113,7 @@ export const commands = [
 ]
 
 export async function mkMsgDel(msg: Message, authorId: string, canDelete?: string[]) {
+    if (!msg) return
     await msg.react(`❌`);
     if (canDelete) canDelete.push(authorId);
     await new DeletableResponse({

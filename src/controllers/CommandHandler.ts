@@ -1,10 +1,11 @@
 import axios from "axios"
-import { Client, Collection, Message, MessageEmbed, PermissionString, TextChannel } from "discord.js"
+import { Client, Collection, GuildMember, Message, MessageEmbed, PermissionString, TextChannel } from "discord.js"
 import { readdir } from "fs/promises"
 import { Bot } from "../bot"
 import { CommandResponse } from "../types/CommandResponse"
 import { CommandCategory } from "../types/CommandTypes"
 
+//Clean code™️
 export class CommandHandler {
     public static readonly ERROR_NO_COMMAND = {
         title: "Hiba!",
@@ -88,6 +89,8 @@ export class CommandContext {
     loading: boolean
     bot: Client
     data: CommandResponse
+    textChannel: TextChannel
+    ranBy: GuildMember
 
     /**
      * Creates a CommandContext
@@ -97,6 +100,8 @@ export class CommandContext {
         this.response = new CommandResult()
         this.bot = bot
         this.data = data
+        this.textChannel = bot.channels.cache.get(data.channel_id) as TextChannel
+        this.ranBy = this.textChannel.guild.members.cache.get(data.member.user.id)
     }
 
     /**
@@ -119,7 +124,6 @@ export class CommandContext {
                 content: msg,
                 embeds: []
             })
-            console.log(JSON.stringify(data));
             this.response.reply = data
             if (status != 200) {
                 (this.bot.channels.cache.get(this.data.channel_id) as TextChannel).send(`Hiba a parancs futtatása során: ${status}`)
@@ -136,14 +140,12 @@ export class CommandContext {
                     }
                 }
             })
-            console.log(res.toJSON())
             this.response.responded = true;
         }
     }
 
     /**
      * deleteResponse - Deletes the original response
-     * 
      */
     public async deleteResponse() {
         const {status} = await axios.delete(`https://discord.com/api/v6/webhooks/747157043466600477/${this.data.token}/messages/@original`)
@@ -164,7 +166,7 @@ export class CommandContext {
                 (this.bot.channels.cache.get(this.data.channel_id) as TextChannel).send(`Hiba a parancs futtatása során: ${status}`)
             }
         } else {
-            console.log((this.bot as any).api.interactions(this.data.id, this.data.token).callback.post({
+            (this.bot as any).api.interactions(this.data.id, this.data.token).callback.post({
                 data: {
                     type: 4,
                     data: {
@@ -174,7 +176,7 @@ export class CommandContext {
                         embeds: [msg]
                     }
                 }
-            }))
+            })
             this.response.responded = true;
         }
     }
