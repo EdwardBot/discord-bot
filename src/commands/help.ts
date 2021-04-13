@@ -1,23 +1,25 @@
-import { Client, TextChannel, MessageEmbed } from 'discord.js'
-import { CommandResponse } from '../types/CommandResponse'
-import { commands, mkMsgDel } from '../main'
-import * as config from '../../botconfig.json'
+import { MessageEmbed } from 'discord.js'
+import { bot, mkMsgDel } from '../main'
 import { categories, CommandCategory } from '../types/CommandTypes'
+import { Command, CommandContext } from '../controllers/CommandHandler'
+import { owner_id } from '../../botconfig.json'
 
-export default {
-    name: `help`,
-    description: `Kiírja a segítség menüt`,
-    id: `810106784392019968`,
-    requiesOwner: false,
-    requiedPermissions: [],
-    category: CommandCategory.GENERAL,
-    run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
+function getCommandsForCategory(category: CommandCategory): Command[] {
+    return bot.commandHandler.commands.array().filter((cmd) => cmd.category == category);
+}
+
+export default new Command()
+    .setName(`help`)
+    .setDescription(`Kiírja a segítség menüt`)
+    .setId(`831498003361300490`)
+    .setCategory(CommandCategory.GENERAL)
+    .executes(async function (ctx: CommandContext) {
         const embed = new MessageEmbed()
             .setColor(`#2ed573`)
             .setTimestamp(Date.now())
-            .setAuthor(`EdwardBot`, bot.user.avatarURL())
-            .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
-        switch (data.data.options[0].name) {
+            .setAuthor(`EdwardBot`, bot.bot.user.avatarURL())
+            .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
+        switch (ctx.data.data.options[0].name) {
             case `kategóriák`:
                 embed.setTitle(`Segítség`)
                     .setDescription(`Elérhető kategóriák:`)
@@ -31,7 +33,7 @@ export default {
 
             case `dashboard`:
                 embed.setTitle(`Dashboard`)
-                    .setURL(`https://dashboard.edwardbot.tk/g/${data.guild_id}?ref=dashcmd&usr=${data.member.user.id}`)
+                    .setURL(`https://dashboard.edwardbot.tk/g/${ctx.data.guild_id}?ref=dashcmd&usr=${ctx.ranBy.user.id}`)
                     .setDescription(`A dashboardon mindent be tudsz állítani,\nde még fejlesztjük.`)
                 break;
 
@@ -46,7 +48,7 @@ export default {
 
             case `kategória`:
                 embed.setTitle(`Segítség`)
-                switch (data.data.options[0].options[0].value) {
+                switch (ctx.data.data.options[0].options[0].value) {
                     case `GENERAL`:
                         embed.setDescription(`Általános, nem kategorizálható parancsok.`)
                         break;
@@ -74,8 +76,15 @@ export default {
                 break;
 
             case `parancsok`:
-                if (data.data.options[0].options) {
-
+                if (ctx.data.data.options[0].options) {
+                    let cat = ctx.data.data.options[0].options[0].value as CommandCategory
+                    const cmds = getCommandsForCategory(cat);
+                    if (cmds.length == 0) {
+                        embed.setDescription(`Nincs parancs a kategóriában.`)
+                        break
+                    }
+                    embed.setTitle(`A(z) ${cat.toString()} parancsai`)
+                    cmds.forEach((cmd) => embed.addField(cmd.name, `> ${cmd.description}`));
                 } else {
                     categories.forEach((cat) => {
                         let tmp = "";
@@ -86,26 +95,38 @@ export default {
                     })
                 }
                 break;
+
+            case `parancs`:
+                const cmd = bot.commandHandler.commands.array().find((c) => c.name == ctx.data.data.options[0].options[0].value.toLowerCase());
+                if (cmd) {
+                    let canRun = true;
+
+                    if (cmd.requiesOwner && ctx.ranBy.user.id != owner_id) {
+                        canRun = false
+                    } else {
+                        cmd.requiedPermissions.forEach((e) => {
+                            if (!ctx.ranBy.hasPermission(e)) {
+                                canRun = false
+                                return
+                            }
+                        })
+                    }
+                    embed.setTitle(`**${cmd.name}**`)
+                        .addField(`Leírás:`, `> ${cmd.description}`)
+                        .addField(`Kategória:`, `> ${cmd.category.toString()}`)
+                        .addField(`Szükséges jogosultságok:`, `> [${cmd.requiedPermissions.map((i,n,a) => `\`${i}\`${n + 1 < a.length ? `,` : ``} `)}]`)
+                        .addField(`Csak a tulaj használhatja: `, `> ${cmd.requiesOwner ? `Igen` : `Nem`}`)
+                        .addField(`Használhatod-e?`, canRun ? `> Igen` : `> Nem`)
+                        .setColor(canRun ? `GREEN` : `RED`)
+                } else {
+                    embed.setTitle(`Hiba`)
+                        .setDescription(`Nincs ilyen parancs!`)
+                        .setColor(`RED`)
+                }
+                
+                break;
         }
-        //const isOwner = data.member.user.id == config.owner_id;
-        //const user = tc.guild.member(data.member.user.id);
-        //commands.forEach((value) => {
-        //
-        //    if ((value.requiesOwner && isOwner) || !value.requiesOwner) {
-        //        let hasPerm = true;
-        //        value.requiedPermissions.forEach((perm) => {
-        //            if (user == undefined || user == null) {
-        //                hasPerm = false;
-        //            } else if (!user.hasPermission(perm)) hasPerm = false;
-        //        })
-        //        if (hasPerm) embed.addField(`/${value.name}:`, value.description)
-        //    }
-        //})
-
-        mkMsgDel(await tc.send(embed), data.member.user.id)
-    }
-}
-
-function getCommandsForCategory(category: CommandCategory): any[] {
-    return commands.filter((cmd) => cmd.category == category);
-}
+        
+        ctx.replyEmbed(embed)
+        mkMsgDel(ctx.response.reply, ctx.data.member.user.id)
+    })

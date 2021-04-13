@@ -1,20 +1,18 @@
-import { Client, TextChannel, MessageEmbed, PermissionString } from 'discord.js';
-import { CommandResponse } from '../types/CommandResponse';
+import { MessageEmbed } from 'discord.js';
+import { Command, CommandContext } from '../controllers/CommandHandler';
 import { CommandCategory } from '../types/CommandTypes';
 
-export default {
-    name: `kick`,
-    description: `Kirúg egy embert.`,
-    id: `807565939200753666`,
-    requiesOwner: false,
-    requiedPermissions: [ (`KICK_MEMBERS` as PermissionString) ],
-    category: CommandCategory.MODERATION,
-    run: function (bot: Client, tc: TextChannel, data: CommandResponse) {
-        const pingE = new MessageEmbed()
+export default new Command()
+    .setName(`kick`)
+    .setDescription(`Kirúg egy embert.`)
+    .setId(`807565939200753666`)
+    .addRequiredPermission(`KICK_MEMBERS`)
+    .setCategory(CommandCategory.MODERATION)
+    .executes(async function(ctx: CommandContext) {
+        const embed = new MessageEmbed()
             .setTitle("Ping")
-            .addField("A bot pingje:", `${bot.ws.ping}ms`)
+            .setDescription(`Not implemented`)
             .setTimestamp(Date.now())
-            .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
-        tc.send(pingE)
-    }
-}
+            .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
+        ctx.replyEmbed(embed)
+    })

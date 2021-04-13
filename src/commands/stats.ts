@@ -1,8 +1,9 @@
 import { Client, TextChannel, MessageEmbed } from 'discord.js';
 import { CommandResponse } from '../types/CommandResponse';
 import { version } from 'os';
-import { commandsRun, mkMsgDel } from '../main';
+import { mkMsgDel } from '../main';
 import { CommandCategory } from '../types/CommandTypes';
+import { commandsRun } from '../controllers/DatabaseHandler';
 
 export default {
     name: `infó`,
