@@ -28,6 +28,13 @@ export class Bot {
         this.bot.login(process.env.TOKEN)
     }
 
+    /**
+     * getPing
+     */
+    public getPing(): number {
+        return this.bot.ws.ping;
+    }
+
     public async ready() {
         console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
         this.bot.user.setPresence({
