@@ -33,7 +33,7 @@ export class DatabaseHandler {
                     .setTitle(`Debug`)
                     .setColor(`RED`)
                     .setDescription(`Db connection lost, reconnecting!${err ? `\nError: ${err.message}` : ``}`);
-                (this.bot.bot.channels.cache.get(`809097196267372555`) as TextChannel).send(embed);
+                (this.bot.bot.channels.cache.get(`809097196267372555`) as TextChannel)?.send(embed);
                 setTimeout(() => this.connect(), 5000);
             } else {
                 console.log(`Connected to the db.`);

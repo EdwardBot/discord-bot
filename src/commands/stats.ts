@@ -64,7 +64,7 @@ export default new Command()
                     .addField(`Regisztrált: `, new Date(user.user.createdTimestamp).toUTCString(), true)
                     .addField(`Csatlakozott a szerverhez:`, user.joinedAt.toUTCString(), true)
                     .addField(`Beceneve:`, user.nickname ? user.nickname : `Nincs`, true)
-                    .addField(`Rangjai: `, user.roles.cache.array().map((r) => r.name == `@everyone` ? `@everyone` : `<@&${r.id}>`).join(` `))
+                    .addField(`Rangjai: `, user.roles.cache.array().map((r) => r.name == `@everyone` ? r.name : `<@&${r.id}>`).join(` `))
                 break;
         }
         ctx.replyEmbed(embed)

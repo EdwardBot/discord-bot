@@ -4,7 +4,6 @@
     "description": "",
     "main": "main.js",
     "dependencies": {
-        "@ipmanlk/reddit-simple": "^2.2.1",
         "@types/node": "^14.14.22",
         "axios": "^0.21.1",
         "discord.js": "^12.5.1",

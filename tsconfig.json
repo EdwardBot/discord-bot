@@ -4,8 +4,7 @@
         "lib": [
             "ES2015"
         ],
-        "resolveJsonModule": true,
-        "outDir": "./build/"
+        "resolveJsonModule": true
     },
     "exclude": [
         "./build/*"
