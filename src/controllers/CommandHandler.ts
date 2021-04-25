@@ -2,8 +2,10 @@ import axios from "axios"
 import { Client, Collection, GuildMember, Message, MessageEmbed, PermissionString, TextChannel } from "discord.js"
 import { readdir } from "fs/promises"
 import { Bot } from "../bot"
+import meme from "../commands/meme"
 import { CommandResponse } from "../types/CommandResponse"
 import { CommandCategory } from "../types/CommandTypes"
+import { noPermMsg } from "../utils"
 
 //Clean code™️
 export class CommandHandler {
@@ -11,6 +13,7 @@ export class CommandHandler {
         title: "Hiba!",
         type: "rich",
         description: "Hiba történt a parancs lefuttatása közben!\n" +
+            "A parancs nincs betöltve.\n" +
             "Ha a hiba továbbra is fennál, csatlakozz a Discord szerverünkre és segítünk!\n" +
             "Meghívó: https://dc.edwardbot.tk",
         color: 16711680,
@@ -33,9 +36,13 @@ export class CommandHandler {
         const cmds = await readdir(`${process.cwd()}/src/commands`)
         this.commands = new Collection()
         cmds.forEach((cmd) => {
-            const tmp = (require(`../commands/${cmd}`).default as Command)
-            this.commands.set(tmp.id, tmp)
-            console.log(`Loaded command ${tmp.name}`);
+            try {
+                const tmp = (require(`../commands/${cmd}`).default as Command)
+                this.commands.set(tmp.id, tmp)
+                console.log(`Loaded command ${tmp.name}`);
+            } catch (e) {
+                console.error(`Error loading command: ${cmd}`);
+            }
             
         })
         console.log(`Loaded commands!`)
@@ -57,8 +64,22 @@ export class CommandHandler {
         }
         if (this.commands.has(data.data.id)) {
             const cmd = this.commands.get(data.data.id)
+            const member = this.bot.bot.guilds.cache.get(data.guild_id).members.cache.get(data.member.user.id)
+            let canRun = !cmd.requiesOwner
+            let needs = [];
+            cmd.requiedPermissions.forEach((e) => {
+                if (!member.hasPermission(e)) {
+                    canRun = false;
+                    needs.push(e)
+                }
+            })
             const ctx = new CommandContext(this.bot.bot, data)
-            cmd.run(ctx)
+            if (canRun) {
+                cmd.run(ctx)
+                this.bot.databaseHandler.incrementCommandsRun();
+            } else {
+                ctx.replyEmbed(noPermMsg(data.member.user, needs.join(`, `)))
+            }
         } else {
             (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
                 data: {
@@ -71,6 +92,32 @@ export class CommandHandler {
                     }
                 }
             })
+        }
+    }
+
+    /**
+     * runTrick
+     */
+    public async runTrick(name: string, args: string[], msg: Message) {
+        switch (name) {
+            case `reload`:
+                if (args.length != 1) {
+                    msg.channel.send(`Adj meg parancsot!`)
+                    break
+                }
+                try {
+                    const tmp = (require(`../commands/${args[0]}`).default as Command)
+                    this.commands.delete(this.commands.find((c) => c.name == tmp.name)?.id)
+                    this.commands.set(tmp.id, tmp)
+                    msg.channel.send(`Parancs újratöltve: \`${tmp.name}\``)
+                } catch (e) {
+                    msg.channel.send(`Hiba a parancs újratöltése közben!\n${e}`)
+                }
+                break;
+
+            case `stop`:
+                await msg.channel.send(`Leállítás...`)
+                process.exit(0)
         }
     }
 }

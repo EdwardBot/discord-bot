@@ -4,6 +4,7 @@ import { bot, mkMsgDel } from '../main';
 import { CommandCategory } from '../types/CommandTypes';
 import { commandsRun } from '../controllers/DatabaseHandler';
 import { Command, CommandContext } from '../controllers/CommandHandler';
+import { getBadges } from '../utils';
 
 export default new Command()
     .setName(`infó`)
@@ -16,7 +17,7 @@ export default new Command()
 
         const embed = new MessageEmbed()
             .setTitle(`Információk`)
-            .setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
+            .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
             .setTimestamp(Date.now())
             .setColor(`#feca57`);
 
@@ -29,6 +30,7 @@ export default new Command()
                     .addField(`Memória használat:`, `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}Mb`, true)
                     .addField(`Futásidő:`, (process.uptime().toString() as any).toHHMMSS(), true)
                     .addField(`Ennyi szerveren van bent a bot:`, bot.bot.guilds.cache.size, true)
+                    .addField(`Bot mód:`, process.env.MODE == `DEV` ? `Fejlesztés` : `Stabil`, true)
                     .addField(`Parancsok lefuttatva a kezdetektől:`, commandsRun, true)
                 break;
 
@@ -56,7 +58,21 @@ export default new Command()
                 break;
 
             case `felhasználó`:
-                const user = ctx.ranBy;
+                const user = ctx.data.data.options[0].options 
+                ? ctx.ranBy.guild.members.cache.get(ctx.data.data.options[0].options[0].value) 
+                : ctx.ranBy;
+
+                const clientStatus = user.presence.clientStatus;
+
+                const status = user.presence.status;
+
+                const statusHun = status == `online` ? `Online` : 
+                status == `idle` ? `Tétlen` : 
+                status == `dnd` ? `Ne zavarjanak` : 
+                status == `invisible` ? `Láthatatlan` : `Offline`;
+                
+                const badges = await getBadges(user);
+
                 embed.addField(`Felhasználónév:`, user.user.username, true)
                     .addField(`Azonosító:`, user.user.discriminator, true)
                     .addField(`ID: `, user.user.id, true)
@@ -64,6 +80,10 @@ export default new Command()
                     .addField(`Regisztrált: `, new Date(user.user.createdTimestamp).toUTCString(), true)
                     .addField(`Csatlakozott a szerverhez:`, user.joinedAt.toUTCString(), true)
                     .addField(`Beceneve:`, user.nickname ? user.nickname : `Nincs`, true)
+                    .addField(`Bot:`, user.user.bot ? `Igen` : `Nem`, true)
+                    .addField(`Belépve innen:`, clientStatus.mobile ? `Telefon` : clientStatus.desktop ? `Számítógép` : `Böngésző`, true)
+                    .addField(`Állapota: `, statusHun, true)
+                    .addField(`Jelvényei:`, badges.length == 0 ? `Nincs.` : badges.join(` `), true)
                     .addField(`Rangjai: `, user.roles.cache.array().map((r) => r.name == `@everyone` ? r.name : `<@&${r.id}>`).join(` `))
                 break;
         }

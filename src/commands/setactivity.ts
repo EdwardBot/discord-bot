@@ -13,7 +13,7 @@ export default {
     category: CommandCategory.MISC,
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
         if (data.member.user.id != config.owner_id) {
-            noPermMsg(tc, data.member.user, `BOT_TULAJ`);
+            noPermMsg(data.member.user, `BOT_TULAJ`);
             return;
         }
         const oldA = bot.user.presence.activities[0];

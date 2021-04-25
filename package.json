@@ -18,7 +18,7 @@
         "typescript": "^4.2.3"
     },
     "scripts": {
-        "run": "tsc && node src/main.js",
+        "run": "ts-node src/main.ts",
         "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/main.ts"
     },
     "author": "Bendi",

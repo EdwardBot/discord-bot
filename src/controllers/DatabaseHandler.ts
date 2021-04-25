@@ -107,4 +107,11 @@ export class DatabaseHandler {
         //Do the same later
         setTimeout(() => this.clean(), 3600000)
     }
+
+    /**
+     * incrementCommandsRun
+     */
+    public incrementCommandsRun() {
+        commandsRun++;
+    }
 }

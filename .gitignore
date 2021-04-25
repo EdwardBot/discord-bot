@@ -110,3 +110,5 @@ http/
 
 build/
 commands_run
+
+docker-compose.yml
