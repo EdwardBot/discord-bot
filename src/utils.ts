@@ -1,23 +1,71 @@
 import axios from "axios";
-import { timeStamp } from "console";
-import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import { GuildMember, MessageEmbed } from "discord.js";
 import { User } from "./types/CommandResponse";
 import { SfwWaifu, sfwWaifus } from "./types/CommandTypes";
 
-export async function noPermMsg(tc: TextChannel, user: User, perm: string) {
-    const embed = new MessageEmbed()
-    .setDescription(`Nincs jogod ehez!\nHiányzik a \`${perm}\` jogosúltságod`)
+const noPerm = new MessageEmbed()
     .setTitle(`Hiba!`)
     .setColor(`RED`)
     .setTimestamp(Date.now())
-    .setFooter(`Lefuttatta: ${user.username}#${user.discriminator}`);
-    tc.startTyping();
-    const sent = await tc.send(embed);
-    tc.stopTyping();
 
-    setTimeout(() => {
-        sent.delete();
-    }, 4000);
+export function noPermMsg(user: User, perm: string): MessageEmbed {
+    return noPerm.setDescription(`Nincs jogod ehez!\nHiányzik a \`${perm}\` jogosúltságod`)
+        .setFooter(`Lefuttatta: ${user.username}#${user.discriminator}`);
+    
+}
+
+export async function getBadges(member: GuildMember) : Promise<string[]> {
+    let badges = [];
+
+    let flags = member.user.flags?.toArray()
+    
+
+    if (flags) {
+        badges.push(...flags.map((value) => {
+            switch (value) {
+                case `HOUSE_BALANCE`:
+                    return `<:Balance:834074650145194025>`
+
+                case `HOUSE_BRAVERY`:
+                    return `<:Bravery:834074651516338216>`
+
+                case `HOUSE_BRILLIANCE`:
+                    return `<:Brilliance:834074652070117407>`
+
+                case `HYPESQUAD_EVENTS`:
+                    return `<:HypeSquad_Events:834074651629191238>`
+
+                case `EARLY_VERIFIED_DEVELOPER`:
+                    return `<:Early_Verified_Bot_Developer:834074651620671528>`
+
+                case `VERIFIED_DEVELOPER`:
+                    return `<:Early_Verified_Bot_Developer:834074651620671528>`
+
+                case `EARLY_SUPPORTER`:
+                    return `<:Early_Supporter:834074651902083102>`
+
+                case `DISCORD_PARTNER`:
+                    return `<:Partner:834074651637710938>`
+
+                case `BUGHUNTER_LEVEL_1`:
+                    return `<:Bughunter_Level1:834074651889106964>`
+
+                case `BUGHUNTER_LEVEL_2`:
+                    return `<:Bughunter_Level2:834074651847688223>`
+
+                case `DISCORD_EMPLOYEE`:
+                    return `<:Employee:834074651575189505>`
+
+                case `PARTNERED_SERVER_OWNER`:
+                    return `<:Partner:834074651637710938>`
+
+                case `VERIFIED_BOT`:
+                    return `<:Verified:834405935476506644>`
+            }
+        }))
+    }
+    
+    return badges;
 }
 
 export function randomFromArray(arr: any[]): any {

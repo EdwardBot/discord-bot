@@ -1,116 +1,27 @@
-import { Client, Message, MessageEmbed, TextChannel } from 'discord.js'
-import { CommandResponse } from './types/CommandResponse'
-import { connect } from 'mongoose'
-import ping from './commands/ping'
-import help from './commands/help'
-import setactivity from './commands/setactivity'
-import stop from './commands/stop'
-import meme from './commands/meme'
-import purge from './commands/purge'
-import calc from './commands/calc'
-import stats from './commands/stats'
-import serverInfo from './commands/server-info'
-import kick from './commands/kick'
-import mcserver from './commands/mcserver'
-import coinflip from './commands/coinflip'
-import howgay from './commands/howgay'
-import covid from './commands/covid'
-import anime from './commands/anime'
-import guildConfig from './commands/guildconfig';
-import { noPermMsg } from './utils'
+import { Message } from 'discord.js'
 import { config } from 'dotenv'
-import Config from './models/Config'
 import DeletableResponse from './models/DeletableResponse'
-import GuildConfig from './models/GuildConfig'
 
 config({
     path: `./.env`
 });
 
-const bot = new Client({
-    partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`]
-})
+String.prototype['toHHMMSS'] = function () {
+    let sec_num = parseInt(this, 10); 
+    let hours   = Math.floor(sec_num / 3600);
+    let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    let seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {(hours as any)  = "0"+hours;}
+    if (minutes < 10) {(minutes as any) = "0"+minutes;}
+    if (seconds < 10) {(seconds as any) = "0"+seconds;}
+    return hours+':'+minutes+':'+seconds;
+}
 
 let delMsgs = {}
 
-export let commandsRun = 0
-
-async function connectDB() {
-    console.log(`Connecting to the db.`)
-    connect(`${process.env.MONGODB}/edward?retryWrites=true&w=majority`, {
-        appname: `EdwardBot`,
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    }, (err) => {
-        if (err) {
-            console.log(`Db connection lost, reconnecting!`);
-            const embed = new MessageEmbed()
-                .setTitle(`Debug`)
-                .setColor(`RED`)
-                .setDescription(`Db connection lost, reconnecting!${err ? `\nError: ${err.message}` : ``}`);
-            (bot.channels.cache.get(`809097196267372555`) as TextChannel).send(embed);
-            setTimeout(() => connectDB(), 1000);
-        } else {
-            console.log(`Connected to the db.`);
-            initCommandsRun();
-            cleanDb();
-        }
-    });
-}
-
-async function initCommandsRun() {
-    let ran = await Config.findOne({
-        key: `stats.commands_run`
-    });
-    if (ran == null || ran == undefined) {
-        const asd = new Config({
-            key: `stats.commands_run`,
-            value: `100`
-        })
-        ran = await asd.save();
-    }
-    commandsRun = Number.parseInt((ran.toObject() as any).value)
-
-    setInterval(async () => {
-        const obj = await Config.findOne({
-            key: `stats.commands_run`
-        });
-        await obj.updateOne({
-            key: `stats.commands_run`,
-            value: `${commandsRun}`
-        })
-    }, 20000)
-}
-
-async function cleanDb() {
-    let cutoff = new Date();
-    cutoff.setHours(cutoff.getHours() - 1)
-    DeletableResponse.deleteMany({ createdAt: { $lte: cutoff.getTime() } }).then((res) => {
-        console.log(`Succesfully deleted ${res.deletedCount} documents!`)
-    });
-    setTimeout(() => cleanDb(), 150000)
-}
-
-export const commands = [
-    ping,
-    help,
-    setactivity,
-    stop,
-    meme,
-    purge,
-    calc,
-    stats,
-    kick,
-    serverInfo,
-    mcserver,
-    coinflip,
-    howgay,
-    covid,
-    anime,
-    guildConfig
-]
-
 export async function mkMsgDel(msg: Message, authorId: string, canDelete?: string[]) {
+    if (!msg) return
     await msg.react(`❌`);
     if (canDelete) canDelete.push(authorId);
     await new DeletableResponse({
@@ -119,34 +30,8 @@ export async function mkMsgDel(msg: Message, authorId: string, canDelete?: strin
         createdAt: Date.now()
     }).save();
 }
-
+/*
 bot.ws.on((`INTERACTION_CREATE` as any), async (d, shard) => {
-    const data = (d as CommandResponse);
-    if (data.type == 1) {
-        (bot as any).api.interactions(d.id, data.token).callback.post({
-            data: {
-                type: 1
-            }
-        })
-        return;
-    }
-    const cmd = commands.find((cmd) => cmd.id == data.data.id);
-    if (cmd == undefined) {
-        await (bot as any).api.interactions(d.id, data.token).callback.post({
-            data: {
-                type: 3
-            }
-        });
-        return;
-    }
-
-    const ch = bot.channels.cache.get(data.channel_id);
-
-    await (bot as any).api.interactions(d.id, data.token).callback.post({
-        data: {
-            type: 5
-        }
-    });
 
     const tc = (ch as TextChannel);
     const user = (await bot.guilds.fetch(data.guild_id)).members.cache.get(data.member.user.id);
@@ -185,10 +70,6 @@ bot.on(`messageReactionAdd`, async (reaction, user) => {
     }
 })
 
-bot.on(`rateLimit`, (rate) => {
-    console.log(`😒 a dc nem szeret. ${rate.limit} másodpercre letiltotta a ${rate.route}-ot!`)
-})
-
 bot.on(`guildCreate`, (guild) => {
     new GuildConfig({
         guildId: guild.id,
@@ -220,34 +101,10 @@ bot.on(`guildDelete`, async (guild) => {
             type: `WATCHING`
         }
     })
-})
+})*/
 
-bot.on(`ready`, async () => {
-    console.log(`Logged in as ${bot.user.username}#${bot.user.discriminator}`)
-    bot.user.setPresence({
-        activity: {
-            name: `a parancsokat ${bot.guilds.cache.size} szerveren | /help`,
-            type: `WATCHING`
-        }
-    })
-    connectDB();
-    bot.guilds.cache.forEach(async (guild) => {
-        const d = await GuildConfig.findOne({
-            guildId: guild.id
-        }).catch((err) => {
-            console.log(`DB Error: ${err}`)
-        });
-        if (!d) {
-            console.log(`gen for ${guild.name}`)
-            new GuildConfig({
-                guildId: guild.id,
-                joinedAt: Date.now(),
-                allowLogging: false,
-                allowWelcome: false,
-                botAdmins: [ guild.ownerID ]
-            }).save();
-        }
-    })
-})
+import { Bot } from "./bot";
 
-bot.login(process.env.TOKEN)
+export const bot = new Bot();
+
+bot.load()
