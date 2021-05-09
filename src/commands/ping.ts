@@ -1,6 +1,6 @@
 import { MessageEmbed } from 'discord.js';
 import { Command, CommandContext } from '../controllers/CommandHandler';
-import { bot, mkMsgDel } from '../main';
+import { bot } from '../main';
 import { CommandCategory } from '../types/CommandTypes';
 
 export default new Command()
@@ -15,6 +15,4 @@ export default new Command()
             .setTimestamp(Date.now())
             .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
         await ctx.replyEmbed(embed)
-            
-        mkMsgDel(ctx.response.reply, ctx.ranBy.user.id)
     })

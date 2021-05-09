@@ -31,20 +31,20 @@ export class CommandHandler {
      * load
      */
     public async load() {
-        console.log(`Loading commands...`)
+        console.log(`[CommandManager] Loading commands...`)
         const cmds = await readdir(`${process.cwd()}/src/commands`)
         this.commands = new Collection()
         cmds.forEach((cmd) => {
             try {
                 const tmp = (require(`../commands/${cmd}`).default as Command)
                 this.commands.set(tmp.id, tmp)
-                console.log(`Loaded command ${tmp.name}`);
+                console.log(`[CommandManager] Loaded command ${tmp.name}`);
             } catch (e) {
-                console.error(`Error loading command: ${cmd}`);
+                console.error(`[CommandManager] Error loading command: ${cmd}`);
             }
 
         })
-        console.log(`Loaded commands!`)
+        console.log(`[CommandManager] Loaded commands!`)
     }
 
     /** 

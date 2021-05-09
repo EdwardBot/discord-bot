@@ -1,5 +1,5 @@
 import { MessageEmbed } from 'discord.js'
-import { bot, mkMsgDel } from '../main'
+import { bot } from '../main'
 import { categories, CommandCategory } from '../types/CommandTypes'
 import { Command, CommandContext } from '../controllers/CommandHandler'
 import { owner_id } from '../../botconfig.json'
@@ -128,5 +128,4 @@ export default new Command()
         }
         
         ctx.replyEmbed(embed)
-        mkMsgDel(ctx.response.reply, ctx.data.member.user.id)
     })

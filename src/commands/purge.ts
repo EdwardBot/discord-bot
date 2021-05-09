@@ -1,5 +1,4 @@
 import { Client, TextChannel, MessageEmbed, PermissionString } from 'discord.js';
-import { mkMsgDel } from '../main';
 import { CommandResponse, Member } from '../types/CommandResponse';
 import { CommandCategory } from '../types/CommandTypes';
 
@@ -65,7 +64,6 @@ export default {
                 const timeout = setTimeout(() => {
                     msg.delete()
                 }, 15000);
-                mkMsgDel(msg, data.member.user.id);
                 break;
             case "szám":
                 if (data.data.options == undefined) return sendError(tc, data.member, false);
@@ -111,7 +109,6 @@ export default {
                 const timeoutC = setTimeout(() => {
                     msgC.delete()
                 }, 15000);
-                mkMsgDel(msgC, data.member.user.id);
                 break;
         }
     }
@@ -128,5 +125,4 @@ async function sendError(tc: TextChannel, member: Member, isC: boolean) {
         purgeCE.setDescription(`Használd így: \`/törlés felhasználó <@valaki>\``)
     }
     const msg = await tc.send(purgeCE)
-    mkMsgDel(msg, member.user.id);
 }

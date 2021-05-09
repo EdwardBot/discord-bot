@@ -1,6 +1,5 @@
 import { MessageEmbed } from 'discord.js';
 import { Command, CommandContext } from '../controllers/CommandHandler';
-import { mkMsgDel } from '../main';
 import { CommandCategory } from '../types/CommandTypes';
 import { getRandomWaifu } from '../utils';
 
@@ -19,7 +18,6 @@ const cmd = new Command()
             .setImage(await getRandomWaifu(type))
             .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
         await ctx.replyEmbed(embed)
-        mkMsgDel(ctx.response.reply, ctx.ranBy.user.id)
     })
 
 export default cmd;

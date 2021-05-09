@@ -66,6 +66,7 @@ export class Bot {
                 this.commandHandler.runTrick(cmd, args, msg)
             }
         })
+        //Temp
         this.bot.on(`guildCreate`, (guild) => {
             new GuildConfig({
                 guildId: guild.id,

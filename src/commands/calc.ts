@@ -1,6 +1,5 @@
 import { MessageEmbed } from 'discord.js';
-import { evaluate } from 'mathjs';
-import { mkMsgDel } from '../main';
+import nerdamer from 'nerdamer'
 import { CommandCategory } from '../types/CommandTypes';
 import { Command, CommandContext } from '../controllers/CommandHandler';
 
@@ -12,7 +11,6 @@ async function sendError(ctx: CommandContext) {
         .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
 
     await ctx.replyEmbed(embed)
-    mkMsgDel(ctx.response.reply, ctx.ranBy.user.id);
 }
 
 const cmd = new Command()
@@ -22,11 +20,13 @@ const cmd = new Command()
     .setCategory(CommandCategory.MISC)
     .executes(async function(ctx: CommandContext) {
         if (ctx.data.data.options == undefined) return sendError(ctx)
+        const input = ctx.data.data.options[0].value;
+        const output = nerdamer(input).evaluate().text()
         try {
             const embed = new MessageEmbed()
             .setTitle("Számológép")
             .addField("Művelet:", ctx.data.data.options[0].value)
-            .addField("Eredmény:", evaluate(ctx.data.data.options[0].value))
+            .addField("Eredmény:", output)
             .setTimestamp(Date.now())
             .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
 

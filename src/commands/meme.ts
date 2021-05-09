@@ -1,7 +1,7 @@
 import { MessageEmbed } from 'discord.js'
 import { CommandCategory } from '../types/CommandTypes'
 import { Command, CommandContext } from '../controllers/CommandHandler'
-import { MemeController } from '../controllers/MemeController'
+import memeApi from '../controllers/MemeController'
 import { bot } from '../main'
 
 
@@ -12,7 +12,7 @@ export default new Command()
     .setCategory(CommandCategory.FUN)
     .executes(async (ctx: CommandContext) => {
         ctx.setLoading()
-        const meme = MemeController.getRandom()
+        const meme = memeApi.getData()[Math.floor(Math.random() * memeApi.getData().length)]
         const embed = new MessageEmbed()
             .setTitle("Meme")
             .setTimestamp(Date.now())

@@ -1,6 +1,5 @@
 import { MessageEmbed } from 'discord.js';
-import { version } from 'os';
-import { bot, mkMsgDel } from '../main';
+import { bot } from '../main';
 import { CommandCategory } from '../types/CommandTypes';
 import { commandsRun } from '../controllers/DatabaseHandler';
 import { Command, CommandContext } from '../controllers/CommandHandler';
@@ -88,6 +87,4 @@ export default new Command()
                 break;
         }
         ctx.replyEmbed(embed)
-
-        mkMsgDel(ctx.response.reply, ctx.ranBy.user.id)
     })

@@ -1,7 +1,6 @@
 import { Client, TextChannel, MessageEmbed } from 'discord.js'
 import { CommandResponse, Member } from '../types/CommandResponse'
 import { getStatus } from 'mc-server-status'
-import { mkMsgDel } from '../main'
 import { CommandCategory } from '../types/CommandTypes'
 
 export default {
@@ -65,5 +64,4 @@ async function sendError(tc: TextChannel, member: Member) {
     const timeout = setTimeout(() => {
         msg.delete()
     }, 15000);
-    mkMsgDel(msg, member.user.id);
 }
