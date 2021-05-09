@@ -2,7 +2,6 @@ import axios from "axios"
 import { Client, Collection, GuildMember, Message, MessageEmbed, PermissionString, TextChannel } from "discord.js"
 import { readdir } from "fs/promises"
 import { Bot } from "../bot"
-import meme from "../commands/meme"
 import { CommandResponse } from "../types/CommandResponse"
 import { CommandCategory } from "../types/CommandTypes"
 import { noPermMsg } from "../utils"
@@ -43,7 +42,7 @@ export class CommandHandler {
             } catch (e) {
                 console.error(`Error loading command: ${cmd}`);
             }
-            
+
         })
         console.log(`Loaded commands!`)
     }
@@ -62,37 +61,37 @@ export class CommandHandler {
             })
             return
         }
-        if (this.commands.has(data.data.id)) {
-            const cmd = this.commands.get(data.data.id)
-            const member = this.bot.bot.guilds.cache.get(data.guild_id).members.cache.get(data.member.user.id)
-            let canRun = !cmd.requiesOwner
-            let needs = [];
-            cmd.requiedPermissions.forEach((e) => {
-                if (!member.hasPermission(e)) {
-                    canRun = false;
-                    needs.push(e)
-                }
-            })
-            const ctx = new CommandContext(this.bot.bot, data)
-            if (canRun) {
-                cmd.run(ctx)
-                this.bot.databaseHandler.incrementCommandsRun();
-            } else {
-                ctx.replyEmbed(noPermMsg(data.member.user, needs.join(`, `)))
-            }
-        } else {
-            (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        tts: false,
-                        content: "",
-                        allowed_mentions: [],
-                        embeds: [CommandHandler.ERROR_NO_COMMAND]
+            if (this.commands.has(data.data.id)) {
+                const cmd = this.commands.get(data.data.id)
+                const member = this.bot.bot.guilds.cache.get(data.guild_id).members.cache.get(data.member.user.id)
+                let canRun = !cmd.requiesOwner
+                let needs = [];
+                cmd.requiedPermissions.forEach((e) => {
+                    if (!member.hasPermission(e)) {
+                        canRun = false;
+                        needs.push(e)
                     }
+                })
+                const ctx = new CommandContext(this.bot.bot, data)
+                if (canRun) {
+                    cmd.run(ctx)
+                    this.bot.databaseHandler.incrementCommandsRun();
+                } else {
+                    ctx.replyEmbed(noPermMsg(data.member.user, needs.join(`, `)))
                 }
-            })
-        }
+            } else {
+                (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
+                    data: {
+                        type: 4,
+                        data: {
+                            tts: false,
+                            content: "",
+                            allowed_mentions: [],
+                            embeds: [CommandHandler.ERROR_NO_COMMAND]
+                        }
+                    }
+                })
+            }
     }
 
     /**
@@ -143,7 +142,7 @@ export class CommandContext {
      * Creates a CommandContext
      * @param bot the bot instance
      */
-    constructor (bot: Client, data: CommandResponse) {
+    constructor(bot: Client, data: CommandResponse) {
         this.response = new CommandResult()
         this.bot = bot
         this.data = data
@@ -166,7 +165,7 @@ export class CommandContext {
 
     public async replyString(msg: string) {
         if (this.response.responded) {
-            const {status, data} = await axios.patch(`https://discord.com/api/v6/webhooks/747157043466600477/${this.data.token}/messages/@original`, {
+            const { status, data } = await axios.patch(`https://discord.com/api/v6/webhooks/747157043466600477/${this.data.token}/messages/@original`, {
                 tts: false,
                 content: msg,
                 embeds: []
@@ -195,7 +194,7 @@ export class CommandContext {
      * deleteResponse - Deletes the original response
      */
     public async deleteResponse() {
-        const {status} = await axios.delete(`https://discord.com/api/v6/webhooks/747157043466600477/${this.data.token}/messages/@original`)
+        const { status } = await axios.delete(`https://discord.com/api/v6/webhooks/747157043466600477/${this.data.token}/messages/@original`)
         if (status != 204) {
             console.error(`Error deleting message`)
         }
@@ -253,7 +252,7 @@ export class Command {
         return this
     }
 
-    constructor () {
+    constructor() {
         this.requiedPermissions = []
     }
 

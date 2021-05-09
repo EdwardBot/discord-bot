@@ -1,7 +1,7 @@
 import { MessageEmbed } from 'discord.js';
 import { CommandCategory } from '../types/CommandTypes';
 import { Command, CommandContext } from '../controllers/CommandHandler';
-import { CovidApi } from '../controllers/CovidConstroller';
+import covid from '../controllers/CovidConstroller';
 
 const cmd = new Command()
     .setName(`covid`)
@@ -11,7 +11,7 @@ const cmd = new Command()
     .executes(async function(ctx: CommandContext) {
         ctx.setLoading();
 
-        const cData = await CovidApi.getData();
+        const cData = covid.getData();
         const embed = new MessageEmbed()
             .setDescription(``)
             .setThumbnail(`https://www.fda.gov/files/Coronavirus_3D_illustration_by_CDC_1600x900.png`)

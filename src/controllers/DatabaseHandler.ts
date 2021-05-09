@@ -6,6 +6,11 @@ import DeletableResponse from "../models/DeletableResponse";
 import GuildConfig from "../models/GuildConfig";
 
 export let commandsRun = 0;
+
+/**
+ * DatabaseHandler - Handles db stuff
+ * @author Bendi
+ */
 export class DatabaseHandler {
 
     bot: Bot
@@ -44,6 +49,7 @@ export class DatabaseHandler {
 
     /**
      * ready - Runs when the DB is ready
+     * @author Bendi
      */
     public async ready() {
         let ran = await Config.findOne({

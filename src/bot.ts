@@ -1,8 +1,9 @@
-import { Client, Guild, GuildMember, User } from "discord.js";
+import { Client, Guild, GuildMember, MessageEmbed, User } from "discord.js";
 import { CommandHandler } from "./controllers/CommandHandler";
 import { DatabaseHandler } from "./controllers/DatabaseHandler";
 import { JoinLeaveHandler } from "./controllers/JoinLeaveHandler";
 import { botAdmins } from "../botconfig.json";
+import GuildConfig from "./models/GuildConfig";
 
 export class Bot {
     bot: Client
@@ -64,6 +65,38 @@ export class Bot {
 
                 this.commandHandler.runTrick(cmd, args, msg)
             }
+        })
+        this.bot.on(`guildCreate`, (guild) => {
+            new GuildConfig({
+                guildId: guild.id,
+                joinedAt: Date.now(),
+                allowLogging: false,
+                allowWelcome: false,
+                botAdmins: [guild.ownerID]
+            }).save();
+            const welcome = new MessageEmbed()
+                .setTitle(`Üdvözöllek! <a:aWave:810086084343365662>`)
+                .setDescription(`Köszi hogy hozzáadtál a szerveredhez!\n> Segítséget találhatsz a discord szerverünkön, vagy a dashboardunkon.\nA prefix /`)
+                .setFooter(`EdwardBot`, this.bot.user.avatarURL())
+            guild.systemChannel ? guild.systemChannel.send(welcome) : ``;
+            this.bot.user.setPresence({
+                activity: {
+                    name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help`,
+                    type: `WATCHING`
+                }
+            })
+        })
+        
+        this.bot.on(`guildDelete`, async (guild) => {
+            (await GuildConfig.findOne({
+                guildId: guild.id
+            })).deleteOne();
+            this.bot.user.setPresence({
+                activity: {
+                    name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help`,
+                    type: `WATCHING`
+                }
+            })
         })
         this.bot.login(process.env.TOKEN)
     }
