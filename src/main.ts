@@ -31,28 +31,6 @@ export async function mkMsgDel(msg: Message, authorId: string, canDelete?: strin
     }).save();
 }
 /*
-bot.ws.on((`INTERACTION_CREATE` as any), async (d, shard) => {
-
-    const tc = (ch as TextChannel);
-    const user = (await bot.guilds.fetch(data.guild_id)).members.cache.get(data.member.user.id);
-    let hasPerm = true;
-    let noPerm = `ADMINISTRATOR`;
-    if (user == undefined || user == null) {
-        return noPermMsg(tc, data.member.user, `LÉTEZÉS`);
-    }
-    cmd.requiedPermissions.forEach((perm) => {
-        if (user == undefined || user == null) {
-            hasPerm = false;
-        } else if (!user.hasPermission(perm)) {
-            hasPerm = false;
-            noPerm = perm;
-        }
-    })
-    if (hasPerm) cmd.run(bot, tc, data);
-    else noPermMsg(tc, data.member.user, noPerm)
-    commandsRun++;
-});
-
 bot.on(`messageReactionAdd`, async (reaction, user) => {
     if (reaction.emoji.name == `❌`) {
         const res = await DeletableResponse.findOne({
@@ -70,38 +48,7 @@ bot.on(`messageReactionAdd`, async (reaction, user) => {
     }
 })
 
-bot.on(`guildCreate`, (guild) => {
-    new GuildConfig({
-        guildId: guild.id,
-        joinedAt: Date.now(),
-        allowLogging: false,
-        allowWelcome: false,
-        botAdmins: [guild.ownerID]
-    }).save();
-    const welcome = new MessageEmbed()
-        .setTitle(`Üdvözöllek! <a:aWave:810086084343365662>`)
-        .setDescription(`Köszi hogy hozzáadtál a szerveredhez!\n> Segítséget találhatsz a discord szerverünkön, vagy a dashboardunkon.\nA prefix /`)
-        .setFooter(`EdwardBot`, bot.user.avatarURL())
-    guild.systemChannel ? guild.systemChannel.send(welcome) : ``;
-    bot.user.setPresence({
-        activity: {
-            name: `a parancsokat ${bot.guilds.cache.size} szerveren | /help`,
-            type: `WATCHING`
-        }
-    })
-})
-
-bot.on(`guildDelete`, async (guild) => {
-    (await GuildConfig.findOne({
-        guildId: guild.id
-    })).deleteOne();
-    bot.user.setPresence({
-        activity: {
-            name: `a parancsokat ${bot.guilds.cache.size} szerveren | /help`,
-            type: `WATCHING`
-        }
-    })
-})*/
+*/
 
 import { Bot } from "./bot";
 
