@@ -48,7 +48,8 @@ export default new Command()
                     .addField(`Csatornák:`, guild.channels.cache.size, true)
                     .addField(`Szöveges csatornák:`, guild.channels.cache.filter((ch) => ch.isText()).size, true)
                     .addField(`Hang csatornák:`, guild.channels.cache.filter((ch) => !ch.isText()).size, true)
-                    .addField(`Rangok:`, guild.roles.cache.array().map((r) => `<@&${r.id}>`).join(` `))
+                    .addField(`Emotikonok:`, guild.emojis.cache.array().map((e) => `<${e.animated ? `a` : ``}:${e.name}:${e.id}>`).join(` `))
+                    .addField(`Rangok:`, guild.roles.cache.array().map((r) => r.name == `@everyone` ? r.name : `<@&${r.id}>`).join(` `))
                     .setThumbnail(guild.iconURL());
 
                     if (ctx.ranBy.hasPermission(`MANAGE_GUILD`)) {

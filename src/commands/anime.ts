@@ -6,7 +6,7 @@ import { getRandomWaifu } from '../utils';
 
 const cmd = new Command()
     .setName(`anime`)
-    .setId(`811236631259643954`)
+    .setId(`841341267928809502`)
     .setDescription(`Küld egy anime képet.`)
     .setCategory(CommandCategory.FUN)
     .executes(async function (ctx: CommandContext) {

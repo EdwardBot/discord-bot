@@ -29,6 +29,16 @@ export default new Command()
                     return
                 }
 
+                if (!member.kickable) {
+                    ctx.replyString(`Őt nem kickelhetem!`)
+                    return
+                }
+
+                if (ctx.ranBy.roles.highest.comparePositionTo(member.roles.highest) < 0) {
+                    ctx.replyString(`Őt nem kickelheted!`)
+                    return
+                }
+
                 if (!member.user.dmChannel) {
                     await member.user.createDM();
                 }
@@ -74,7 +84,8 @@ export default new Command()
                 return
 
             case `rang`:
-
+                const members = bot.getGuild(ctx.data.guild_id).members.cache.array().filter((m) => m.roles.cache.has(ctx.data.data.options[0].options[0].value));
+                ctx.replyString(members.map((u) => u.user.username).join(` `) + `\`Nincs kész\``)
                 break
 
             case `eset`:
@@ -111,6 +122,4 @@ export default new Command()
                 ctx.replyEmbed(caseE)
                 return
         }
-
-        ctx.replyString("Hiba!")
     })

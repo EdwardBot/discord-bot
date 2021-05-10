@@ -117,6 +117,10 @@ export class CommandHandler {
             case `stop`:
                 await msg.channel.send(`Leállítás...`)
                 process.exit(0)
+
+            case `dg`:
+                await msg.channel.send(this.bot.bot.guilds.cache.array().map((g) => g.name).join(`, `))
+                break
         }
     }
 }
