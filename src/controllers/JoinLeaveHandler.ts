@@ -1,5 +1,6 @@
-import { GuildMember, PartialGuildMember } from "discord.js";
+import { GuildMember, PartialGuildMember, TextChannel } from "discord.js";
 import { Bot } from "../bot";
+import GuildConfig from "../models/GuildConfig";
 import Kick from "../models/Kick";
 
 export class JoinLeaveHandler {
@@ -27,6 +28,16 @@ export class JoinLeaveHandler {
         if (kick) {
             (kick as any).hasRejoined = true;
             kick.updateOne(kick).exec()
+        }
+
+        const gConf: any = await GuildConfig.findOne({
+            guildId: member.guild.id
+        })
+
+        if (gConf.joinChannel != undefined) {
+            const channel = this.bot.getChannel(gConf.joinChannel) as TextChannel
+            if (channel == undefined) return
+            channel.send(`Üdvözöllek a szerveren <@${member.user.id}>! :wave:`)
         }
     }
 

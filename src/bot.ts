@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, MessageEmbed, User } from "discord.js";
+import { Channel, Client, Guild, GuildMember, MessageEmbed, TextChannel, User } from "discord.js";
 import { CommandHandler } from "./controllers/CommandHandler";
 import { DatabaseHandler } from "./controllers/DatabaseHandler";
 import { JoinLeaveHandler } from "./controllers/JoinLeaveHandler";
@@ -49,6 +49,13 @@ export class Bot {
         return this.bot.guilds.cache.get(guildId).members.cache.get(userId);
     }
 
+    /**
+     * getChannel
+     */
+    public getChannel(id: string): Channel {
+        return this.bot.channels.cache.get(id);
+    }
+
     public async load() {
         console.log(`Loading EdwardBot`);
         await this.commandHandler.load();
@@ -79,27 +86,29 @@ export class Bot {
                 .setTitle(`Üdvözöllek! <a:aWave:810086084343365662>`)
                 .setDescription(`Köszi hogy hozzáadtál a szerveredhez!\n> Segítséget találhatsz a discord szerverünkön, vagy a dashboardunkon.\nA prefix /`)
                 .setFooter(`EdwardBot`, this.bot.user.avatarURL())
-            guild.systemChannel ? guild.systemChannel.send(welcome) : ``;
-            this.bot.user.setPresence({
-                activity: {
-                    name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help`,
-                    type: `WATCHING`
-                }
-            })
+            guild.systemChannel ? guild.systemChannel.send(welcome) : (guild.channels.cache.filter((c) => c.isText()).first() as TextChannel).send(welcome);
+            this.updatePresence()
         })
         
         this.bot.on(`guildDelete`, async (guild) => {
             (await GuildConfig.findOne({
                 guildId: guild.id
             })).deleteOne();
-            this.bot.user.setPresence({
-                activity: {
-                    name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help`,
-                    type: `WATCHING`
-                }
-            })
+            this.updatePresence();
         })
         this.bot.login(process.env.TOKEN)
+    }
+
+    /**
+     * updatePresence - Updates the bots presence
+     */
+    public updatePresence() {
+        this.bot.user.setPresence({
+            activity: {
+                name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help ${process.env.MODE == `DEV` ? `Fejlesztés alatt` : ``}`,
+                type: `WATCHING`
+            }
+        })
     }
 
     /**
@@ -111,11 +120,6 @@ export class Bot {
 
     public async ready() {
         console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
-        this.bot.user.setPresence({
-            activity: {
-                name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help`,
-                type: `WATCHING`
-            }
-        })
+        this.updatePresence();
     }
 }

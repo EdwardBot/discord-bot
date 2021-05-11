@@ -61,37 +61,38 @@ export class CommandHandler {
             })
             return
         }
-            if (this.commands.has(data.data.id)) {
-                const cmd = this.commands.get(data.data.id)
-                const member = this.bot.bot.guilds.cache.get(data.guild_id).members.cache.get(data.member.user.id)
-                let canRun = !cmd.requiesOwner
-                let needs = [];
-                cmd.requiedPermissions.forEach((e) => {
-                    if (!member.hasPermission(e)) {
-                        canRun = false;
-                        needs.push(e)
-                    }
-                })
-                const ctx = new CommandContext(this.bot.bot, data)
-                if (canRun) {
-                    cmd.run(ctx)
-                    this.bot.databaseHandler.incrementCommandsRun();
-                } else {
-                    ctx.replyEmbed(noPermMsg(data.member.user, needs.join(`, `)))
+        if (this.commands.has(data.data.id)) {
+            const cmd = this.commands.get(data.data.id)
+            const member = this.bot.bot.guilds.cache.get(data.guild_id).members.cache.get(data.member.user.id)
+            console.log(`[CommandHandler] User ${member.user.username}#${member.user.discriminator}(${member.user.id}) ran command /${cmd.name}`);
+            let canRun = !cmd.requiesOwner
+            let needs = [];
+            cmd.requiedPermissions.forEach((e) => {
+                if (!member.hasPermission(e)) {
+                    canRun = false;
+                    needs.push(e)
                 }
+            })
+            const ctx = new CommandContext(this.bot.bot, data)
+            if (canRun) {
+                cmd.run(ctx)
+                this.bot.databaseHandler.incrementCommandsRun();
             } else {
-                (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
-                    data: {
-                        type: 4,
-                        data: {
-                            tts: false,
-                            content: "",
-                            allowed_mentions: [],
-                            embeds: [CommandHandler.ERROR_NO_COMMAND]
-                        }
-                    }
-                })
+                ctx.replyEmbed(noPermMsg(data.member.user, needs.join(`, `)))
             }
+        } else {
+            (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
+                data: {
+                    type: 4,
+                    data: {
+                        tts: false,
+                        content: "",
+                        allowed_mentions: [],
+                        embeds: [CommandHandler.ERROR_NO_COMMAND]
+                    }
+                }
+            })
+        }
     }
 
     /**
@@ -119,7 +120,7 @@ export class CommandHandler {
                 process.exit(0)
 
             case `dg`:
-                await msg.channel.send(this.bot.bot.guilds.cache.array().map((g) => g.name).join(`, `))
+                await msg.channel.send(`\`\`\`${this.bot.bot.guilds.cache.array().map((g) => g.name).join(`,\n`)}\`\`\``)
                 break
         }
     }
@@ -167,7 +168,14 @@ export class CommandContext {
         });
     }
 
-    public async replyString(msg: string) {
+    /**
+     * sendError
+     */
+    public sendError() {
+        this.replyString(`Ismeretlen hiba történt!`, true)
+    }
+
+    public async replyString(msg: string, empheral?: boolean) {
         if (this.response.responded) {
             const { status, data } = await axios.patch(`https://discord.com/api/v6/webhooks/747157043466600477/${this.data.token}/messages/@original`, {
                 tts: false,
@@ -186,7 +194,8 @@ export class CommandContext {
                         tts: false,
                         content: msg,
                         allowed_mentions: [],
-                        embeds: []
+                        embeds: [],
+                        flags: empheral ? 64 : 0
                     }
                 }
             })
@@ -204,7 +213,7 @@ export class CommandContext {
         }
     }
 
-    public async replyEmbed(msg: MessageEmbed) {
+    public async replyEmbed(msg: MessageEmbed, empheral?: boolean) {
         if (this.response.responded) {
             const { status, data } = await axios.patch(`https://discord.com/api/v6/webhooks/747157043466600477/${this.data.token}/messages/@original`, {
                 tts: false,
@@ -223,7 +232,8 @@ export class CommandContext {
                         tts: false,
                         content: "",
                         allowed_mentions: [],
-                        embeds: [msg]
+                        embeds: [msg],
+                        flags: empheral ? 64 : 0
                     }
                 }
             })

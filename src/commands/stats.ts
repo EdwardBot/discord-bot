@@ -25,6 +25,7 @@ export default new Command()
             case `bot`:
                 embed.addField("A bot pingje:", `${bot.getPing()}ms`, true)
                     .addField(`Futtató oprendszer:`, `${process.platform}`, true)
+                    .addField(`Ebben készült:`, `Typescript (aka JS) && discord.js`, true)
                     .addField(`NodeJS verzió:`, process.version, true)
                     .addField(`Memória használat:`, `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}Mb`, true)
                     .addField(`Futásidő:`, (process.uptime().toString() as any).toHHMMSS(), true)
