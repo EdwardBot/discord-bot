@@ -1,5 +1,6 @@
 # Edward bot
 
 ## Pretty basic
+Website: [edwardbot.tk](https://edwardbot.tk) 
 
-[![Discord Bots](https://top.gg/api/widget/747157043466600477.svg)](https://top.gg/bot/747157043466600477)
+Discord server: [dc.edwardbot.tk](https://dc.edwardbot.tk) 
