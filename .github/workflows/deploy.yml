@@ -19,7 +19,7 @@ jobs:
         name: Login to DockerHub
         uses: docker/login-action@v1 
         with:
-          registry: ${{ secrets.URL }}
+          registry: ${{ secrets.DOCKER_URL }}
           username: Bendimester23
           password: ${{ secrets.PASSWORD }}
       -
@@ -28,7 +28,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ${{ secrets.URL }}/bot:latest
+          tags: ${{ secrets.DOCKER_URL }}/bot:latest
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
