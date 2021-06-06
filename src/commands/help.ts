@@ -1,7 +1,7 @@
 import { MessageEmbed } from 'discord.js'
 import { bot } from '../main'
 import { categories, CommandCategory } from '../types/CommandTypes'
-import { Command, CommandContext } from '../controllers/CommandHandler'
+import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from '../controllers/CommandHandler'
 import { owner_id } from '../../botconfig.json'
 
 function getCommandsForCategory(category: CommandCategory): Command[] {
@@ -13,6 +13,49 @@ export default new Command()
     .setDescription(`Kiírja a segítség menüt`)
     .setId(`831498003361300490`)
     .setCategory(CommandCategory.GENERAL)
+    .setOnClick((ctx: CommandContext, args: string[]) => {
+        if (args[0] !== "allctg") {
+            ctx.sendPong()
+            return
+        }
+
+        const embed = new MessageEmbed()
+            .setColor(`#2ed573`)
+            .setTimestamp(Date.now())
+            .setAuthor(`EdwardBot`, bot.bot.user.avatarURL())
+            .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
+
+        switch (args[1]) {
+            case `general`:
+                embed.setDescription(`Általános, nem kategorizálható parancsok.`)
+                break;
+
+            case `moderation`:
+                embed.setDescription(`Moderációs parancsok, amelyekel rendben tarthatod a szervered.`)
+                break;
+
+            case `fun`:
+                embed.setDescription(`Minedn ami fun.`)
+                break;
+
+            case `info`:
+                embed.setDescription(`Sok infó, hasznos, meg nem hasznos is.`)
+                break;
+
+            case `music`:
+                embed.setDescription(`Sok zene, meg minedn jó cucc.`)
+                break;
+
+            case `etc`:
+                embed.setDescription(`Főleg parancsok csak nekem.`)
+                break;
+
+            default:
+                ctx.sendPong()
+                return
+        }
+        ctx.replyEmbed(embed, true)
+    })
     .executes(async function (ctx: CommandContext) {
         const embed = new MessageEmbed()
             .setColor(`#2ed573`)
@@ -29,21 +72,64 @@ export default new Command()
                     .addField(`Infó:`, `> Sok hasznos dolgot eláruló parancsok.`)
                     .addField(`Zene:`, `> Hallgass rádiót, vagy általad választott zenét a hangcsatornákban.`)
                     .addField(`Egyéb:`, `> Ezeket nem tudom hova sorolni.`)
+
+                const btns = new ActionRow();
+                const btns2 = new ActionRow();
+
+                btns.addComponent(new ButtonComponent("Általános", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_general`))
+
+                btns.addComponent(new ButtonComponent("Moderáció", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_moderation`))
+
+                btns.addComponent(new ButtonComponent("Szórakozás", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_fun`))
+
+                btns2.addComponent(new ButtonComponent("Infó", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_info`))
+
+                btns2.addComponent(new ButtonComponent("Zene", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_music`))
+
+                btns2.addComponent(new ButtonComponent("Egyéb", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_etc`))
+
+                ctx.addRow(btns)
+                ctx.addRow(btns2)
                 break;
 
             case `dashboard`:
                 embed.setTitle(`Dashboard`)
                     .setURL(`https://dashboard.edwardbot.tk/g/${ctx.data.guild_id}?ref=dashcmd&usr=${ctx.ranBy.user.id}`)
-                    .setDescription(`A dashboardon mindent be tudsz állítani,\nde még fejlesztjük.`)
+                    .setDescription(`A dashboardon mindent be tudsz állítani,\nde még nagyon kezdetleges.`)
+                const row = new ActionRow();
+                row.addComponent(new ButtonComponent("Megnyitás", ButtonStyle.LINK)
+                    .setUrl(`https://dashboard.edwardbot.tk/guild/${ctx.data.guild_id}?ref=dashcmd&usr=${ctx.ranBy.user.id}`))
+                ctx.addRow(row)
                 break;
 
             case `rólunk`:
                 embed.setTitle(`Rólunk`)
-                    .setURL(`https://edwardbot.tk/about`)
-                    .addField(`Fejlesztő:`, `\`\`\`Bendi#2924\`\`\``, true)
+                    .addField(`Fejlesztő:`, `\`\`\`Bendi#2924\n \`\`\``, true)
                     .addField(`Tulajdonos:`, `\`\`\`Bendi#2924\nbtw_MDávid#9813\`\`\``, true)
-                    .addField(`Egyéb hozzájárulás:`, `\`\`\`ICreeper12#1182\`\`\``, true)
+                    .addField(`Egyéb hozzájárulás:`, `\`\`\`ICreeper12#1182\n \`\`\``, true)
                     .setDescription(`Ez a bot azért készült, mert unatkoztam.\n> Remélem hasznos lesz.`)
+
+                const row2 = new ActionRow();
+
+                row2.addComponent(new ButtonComponent(`Weboldal`, ButtonStyle.LINK)
+                    .setUrl(`https://edwardbot.tk`))
+
+                row2.addComponent(new ButtonComponent(`Kezelőfelület`, ButtonStyle.LINK)
+                    .setUrl(`https://dashboard.edwardbot.tk/?ref=helpcmd`))
+
+                row2.addComponent(new ButtonComponent(`Support Szerver`, ButtonStyle.LINK)
+                    .setUrl(`https://dc.edwardbot.tk`))
+
+                row2.addComponent(new ButtonComponent(`Meghívás`, ButtonStyle.LINK)
+                    .setUrl(`https://invite.edwardbot.tk`))
+
+                ctx.addRow(row2)
                 break;
 
             case `kategória`:
@@ -114,7 +200,7 @@ export default new Command()
                     embed.setTitle(`**${cmd.name}**`)
                         .addField(`Leírás:`, `> ${cmd.description}`)
                         .addField(`Kategória:`, `> ${cmd.category.toString()}`)
-                        .addField(`Szükséges jogosultságok:`, `> [${cmd.requiedPermissions.map((i,n,a) => `\`${i}\`${n + 1 < a.length ? `,` : ``} `)}]`)
+                        .addField(`Szükséges jogosultságok:`, `> [${cmd.requiedPermissions.map((i, n, a) => `\`${i}\`${n + 1 < a.length ? `,` : ``} `)}]`)
                         .addField(`Csak a tulaj használhatja: `, `> ${cmd.requiesOwner ? `Igen` : `Nem`}`)
                         .addField(`Használhatod-e?`, canRun ? `> Igen` : `> Nem`)
                         .setColor(canRun ? `GREEN` : `RED`)
@@ -123,9 +209,9 @@ export default new Command()
                         .setDescription(`Nincs ilyen parancs!`)
                         .setColor(`RED`)
                 }
-                
+
                 break;
         }
-        
-        ctx.replyEmbed(embed)
-    })
+
+        ctx.replyEmbed(embed, true)
+    });

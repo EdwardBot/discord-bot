@@ -2,4 +2,11 @@ http/
 
 .env
 
+.git/
+
+.github/
+LICENSE
+Procfile
+README.md
+
 node_modules/
