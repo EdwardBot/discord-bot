@@ -181,6 +181,7 @@ export class CommandHandler {
             case `logs`:
                 msg.channel.send(`\`\`\`${this.logs.get(args[0]).join(`\n`)}\`\`\``)
                 break
+
         }
     }
 }
@@ -247,8 +248,8 @@ export class ButtonComponent extends Component {
     /**
      * disable
      */
-    public disable(): ButtonComponent {
-        this.disabled = true
+    public disable(val: boolean): ButtonComponent {
+        this.disabled = val
         return this
     }
 }

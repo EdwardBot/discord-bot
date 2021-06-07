@@ -1,3 +1,6 @@
+import { GuildMember, Message, User } from "discord.js";
+import { ActionRow } from "../controllers/CommandHandler";
+
 export enum CommandCategory {
     GENERAL = "Általános",
     MODERATION = "Moderáció",
@@ -53,3 +56,29 @@ export const sfwWaifus = [
     `dance`,
     `cringe`
 ]
+
+export interface ButtonInteraction {
+    version:        number;
+    type:           number;
+    token:          string;
+    message:        Message & { components: ActionRow[] };
+    member:         GuildMember;
+    id:             string;
+    guild_id:       string;
+    data:           Data;
+    channel_id:     string;
+    application_id: string;
+}
+
+export interface Data {
+    custom_id:      string;
+    component_type: number;
+}
+
+export interface Interaction {
+    user: User;
+    type: number;
+    name: string;
+    id:   string;
+}
+

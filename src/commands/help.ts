@@ -3,9 +3,19 @@ import { bot } from '../main'
 import { categories, CommandCategory } from '../types/CommandTypes'
 import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from '../controllers/CommandHandler'
 import { owner_id } from '../../botconfig.json'
+import { Agent } from 'node:http'
 
 function getCommandsForCategory(category: CommandCategory): Command[] {
     return bot.commandHandler.commands.array().filter((cmd) => cmd.category == category);
+}
+
+const idToCategory = {
+    general: CommandCategory.GENERAL,
+    moderation: CommandCategory.MODERATION,
+    fun: CommandCategory.FUN,
+    info: CommandCategory.INFO,
+    music: CommandCategory.MUSIC,
+    etc: CommandCategory.MISC
 }
 
 export default new Command()
@@ -14,10 +24,6 @@ export default new Command()
     .setId(`831498003361300490`)
     .setCategory(CommandCategory.GENERAL)
     .setOnClick((ctx: CommandContext, args: string[]) => {
-        if (args[0] !== "allctg") {
-            ctx.sendPong()
-            return
-        }
 
         const embed = new MessageEmbed()
             .setColor(`#2ed573`)
@@ -25,36 +31,87 @@ export default new Command()
             .setAuthor(`EdwardBot`, bot.bot.user.avatarURL())
             .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
 
-        switch (args[1]) {
-            case `general`:
-                embed.setDescription(`Általános, nem kategorizálható parancsok.`)
-                break;
 
-            case `moderation`:
-                embed.setDescription(`Moderációs parancsok, amelyekel rendben tarthatod a szervered.`)
-                break;
+        switch (args[0]) {
+            case `allctg`:
+                switch (args[1]) {
+                    case `general`:
+                        embed.setDescription(`Általános, nem kategorizálható parancsok.`)
+                        break;
 
-            case `fun`:
-                embed.setDescription(`Minedn ami fun.`)
-                break;
+                    case `moderation`:
+                        embed.setDescription(`Moderációs parancsok, amelyekel rendben tarthatod a szervered.`)
+                        break;
 
-            case `info`:
-                embed.setDescription(`Sok infó, hasznos, meg nem hasznos is.`)
-                break;
+                    case `fun`:
+                        embed.setDescription(`Minedn ami fun.`)
+                        break;
 
-            case `music`:
-                embed.setDescription(`Sok zene, meg minedn jó cucc.`)
-                break;
+                    case `info`:
+                        embed.setDescription(`Sok infó, hasznos, meg nem hasznos is.`)
+                        break;
 
-            case `etc`:
-                embed.setDescription(`Főleg parancsok csak nekem.`)
-                break;
+                    case `music`:
+                        embed.setDescription(`Sok zene, meg minedn jó cucc.`)
+                        break;
 
-            default:
-                ctx.sendPong()
-                return
+                    case `etc`:
+                        embed.setDescription(`Főleg parancsok csak nekem.`)
+                        break;
+                }
+
+                const commands = getCommandsForCategory(idToCategory[args[1]])
+
+                if (commands.length == 0) {
+                    embed.addField(`Parancsok:`, `\`\`\`Nincs parancs a kategóriában\`\`\``)
+                } else {
+                    embed.addField(`Parancsok:`, `\`\`\`${commands.map((e) => e.name).join(`\n`)}\`\`\``)
+                }
+
+                const row = new ActionRow()
+                row.addComponent(new ButtonComponent(`Kategóriák`, ButtonStyle.PRIMARY).setCustomId(`ed_cmd_help_back_allctg`))
+
+                ctx.addRow(row)
+                ctx.replyEmbed(embed, true)
+                break
+
+            case `back`:
+                embed.setTitle(`Segítség`)
+                    .setDescription(`Elérhető kategóriák:`)
+                    .addField(`Általános:`, `> Alap parancsok, amiket nem lehet besorolni.`)
+                    .addField(`Moderáció:`, `> A szerver moderálásához szükséges parancsok.`)
+                    .addField(`Szórakozás:`, `> Parancsok, hogy jól szórakozz.`)
+                    .addField(`Infó:`, `> Sok hasznos dolgot eláruló parancsok.`)
+                    .addField(`Zene:`, `> Hallgass rádiót, vagy általad választott zenét a hangcsatornákban.`)
+                    .addField(`Egyéb:`, `> Ezeket nem tudom hova sorolni.`)
+
+                const btns = new ActionRow();
+                const btns2 = new ActionRow();
+
+                btns.addComponent(new ButtonComponent("Általános", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_general`))
+
+                btns.addComponent(new ButtonComponent("Moderáció", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_moderation`))
+
+                btns.addComponent(new ButtonComponent("Szórakozás", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_fun`))
+
+                btns2.addComponent(new ButtonComponent("Infó", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_info`))
+
+                btns2.addComponent(new ButtonComponent("Zene", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_music`))
+
+                btns2.addComponent(new ButtonComponent("Egyéb", ButtonStyle.PRIMARY)
+                    .setCustomId(`ed_cmd_help_allctg_etc`))
+
+                ctx.addRow(btns)
+                ctx.addRow(btns2)
+
+                ctx.replyEmbed(embed, true)
+                break
         }
-        ctx.replyEmbed(embed, true)
     })
     .executes(async function (ctx: CommandContext) {
         const embed = new MessageEmbed()
