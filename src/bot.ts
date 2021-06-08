@@ -4,6 +4,7 @@ import { DatabaseHandler } from "./controllers/DatabaseHandler";
 import { JoinLeaveHandler } from "./controllers/JoinLeaveHandler";
 import { botAdmins } from "../botconfig.json";
 import GuildConfig from "./models/GuildConfig";
+import Wallet from "./models/Wallet";
 
 export class Bot {
     bot: Client
@@ -71,6 +72,7 @@ export class Bot {
                 const args = msg.content.split(` `).slice(1)
 
                 this.commandHandler.runTrick(cmd, args, msg)
+                return
             }
         })
         //Temp
@@ -118,8 +120,60 @@ export class Bot {
         return this.bot.ws.ping;
     }
 
+    /**
+     * migrate - retrogen for db data
+     */
+    public async migrate() {
+        console.log(`[RetroGen:main] Starting migration check.`);
+        
+        await this.bot.guilds.cache.forEach(async (g) => {
+            const conf = await GuildConfig.findOne({
+                guildId: g.id
+            })
+            if (conf == undefined) {
+                console.log(`[RetroGen:guild] Generating for guild: '${g.name}'`);
+                this.migrateGuild(g)
+            }
+            console.log(`[RetroGen:guild] Listing users for '${g.name}'`);
+            await g.members.cache.forEach(async (m) => {
+                if (m.user.bot) return
+                const w = await Wallet.findOne({
+                    guildId: g.id,
+                    userId: m.user.id
+                })
+
+                if (w != undefined) return
+                new Wallet({
+                    guildId: g.id,
+                    userId: m.user.id,
+                    balance: 0,
+                    xp: 0,
+                    lvl: 0,
+                    messages: 0
+                }).save()
+                console.log(`[RetroGen:wallet] Creating wallet for '${m.user.username}#${m.user.discriminator}'`);
+            });
+        })
+        console.log(`[RetroGen:main] Finished migration check.`);
+    }
+
+    /**
+     * migrateGuild- recreates the guild config for a guild
+     */
+    public migrateGuild(id: string | Guild) {
+        const guild = typeof id == "string" ? this.getGuild(id) : id;
+        new GuildConfig({
+            guildId: guild.id,
+            joinedAt: Date.now(),
+            allowLogging: false,
+            allowWelcome: false,
+            botAdmins: [guild.ownerID]
+        }).save();
+    }
+
     public async ready() {
         console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
         this.updatePresence();
+        //setTimeout(async () => this.migrate())
     }
 }

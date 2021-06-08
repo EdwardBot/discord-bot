@@ -114,3 +114,5 @@ commands_run
 docker-compose.yml
 
 .vscode/
+
+deploy.sh

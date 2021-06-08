@@ -5,7 +5,8 @@
             "ES2015"
         ],
         "resolveJsonModule": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "outDir": "./build/"
     },
     "exclude": [
         "./build/*"

@@ -2,6 +2,8 @@ import axios from "axios"
 import { Client, Collection, EmojiResolvable, GuildMember, Message, MessageEmbed, PermissionString, TextChannel } from "discord.js"
 import { readdir } from "fs/promises"
 import { Bot } from "../bot"
+import { InMemoryArrayCache } from "../inMemoryArrayCache"
+import { CustomCommand } from "../models/CustomCommand"
 import { CommandResponse } from "../types/CommandResponse"
 import { CommandCategory } from "../types/CommandTypes"
 import { noPermMsg } from "../utils"
@@ -23,10 +25,31 @@ export class CommandHandler {
     bot: Bot
     logs: Collection<string,string[]>
 
+    cache: InMemoryArrayCache
+
     constructor(bot: Bot) {
         this.bot = bot;
         bot.bot.ws.on((`INTERACTION_CREATE` as any), (data, shard) => this.onCommand(data, shard))
         this.logs = new Collection()
+        bot.bot.on(`message`, (msg) => {
+            if (!msg.channel.isText()) return
+            if (msg.content.startsWith(`!`)) {
+                const cmd = msg.content.substring(1).split(` `)[0]
+                this.onCustomCommand(msg.channel as TextChannel, cmd, msg)
+            }
+        })
+
+        this.cache = new InMemoryArrayCache(bot.bot.guilds.cache.size * 50)
+    }
+
+    /**
+     * onCustomCommand
+     */
+    public async onCustomCommand(channel: TextChannel, command: string, message: Message) {
+        const cmd: CustomCommand = await (await this.cache.get(channel.guild.id, command))
+
+        if (cmd == undefined) return
+        channel.send(cmd.response)
     }
 
     /**

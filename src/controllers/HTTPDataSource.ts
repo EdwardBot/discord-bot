@@ -7,6 +7,7 @@ export class HTTPDataSource {
     fetchInterval: number
     processFunction: Function
     result: any
+    rebuildFunction: Function
 
     constructor (name: string) {
         this.url = ""
@@ -19,6 +20,13 @@ export class HTTPDataSource {
      * fetch - fetches the data
      */
     public async fetch() {
+        if (this.name == undefined || this.url == undefined) {
+            console.log(`[HTTPDataSource:?] Crashed!`);
+            if (this.rebuildFunction != undefined) {
+                console.log(`[HTTPDataSource:?] Rebuilding!`);
+                this.rebuildFunction.call(this, this);
+            }
+        }
         console.log(`[HTTPDataSource:${this.name}] Fetching data...`)
         const start = Date.now();
         const { data, status } = await axios.get(this.url)
@@ -37,6 +45,14 @@ export class HTTPDataSource {
      */
     public getData(): any {
         return this.result
+    }
+
+    /**
+     * setBuildFunction
+     */
+    public setBuildFunction(fun: Function): HTTPDataSource {
+        this.rebuildFunction = fun
+        return this
     }
 
     /**
@@ -67,6 +83,7 @@ export class HTTPDataSource {
      * init
      */
     public init(): HTTPDataSource {
+        this.rebuildFunction.call(this, this)
         this.fetch()
         return this
     }

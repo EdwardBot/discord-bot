@@ -34,6 +34,10 @@ export class JoinLeaveHandler {
             guildId: member.guild.id
         })
 
+        if (gConf == undefined) {
+            this.bot.migrateGuild(member.guild.id);
+        }
+
         if (gConf.joinChannel != undefined) {
             const channel = this.bot.getChannel(gConf.joinChannel) as TextChannel
             if (channel == undefined) return
