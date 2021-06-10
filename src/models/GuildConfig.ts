@@ -10,13 +10,13 @@ const cModel = new Schema({
         requied: true
     },
     logChannel: {
-        type: String
+        type: Object
     },
     joinChannel: {
-        type: String
+        type: Object
     },
     leaveChannel: {
-        type: String
+        type: Object
     },
     allowLogging: {
         type: Boolean,
@@ -31,5 +31,6 @@ const cModel = new Schema({
         requied: true
     },
 });
+
 
 export default model(`guild-config`, cModel);

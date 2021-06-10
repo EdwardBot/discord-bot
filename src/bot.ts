@@ -174,6 +174,6 @@ export class Bot {
     public async ready() {
         console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
         this.updatePresence();
-        //setTimeout(async () => this.migrate())
+        setTimeout(async () => this.migrate())
     }
 }

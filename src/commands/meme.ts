@@ -13,6 +13,7 @@ export default new Command()
     .executes(async (ctx: CommandContext) => {
         ctx.setLoading()
         const meme = memeApi.getData()[Math.floor(Math.random() * memeApi.getData().length)]
+        
         const embed = new MessageEmbed()
             .setTitle("Meme")
             .setTimestamp(Date.now())

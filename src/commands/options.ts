@@ -28,34 +28,39 @@ export default new Command()
                 const channelType = category.options[0].value;
                 if (category.options[1] == undefined) {
                     //Get option
-                    switch (channelType) {
-                        case `welcome`:
-                            ctx.replyEmbed(new MessageEmbed()
-                                .setTitle(`Beállítások`)
-                                .setColor(`GREEN`)
-                                .setDescription(gConf.joinChannel == undefined ? `Nincs Üdvözlőcsatorna megadva!` 
-                                : `Üdvözlőcsatorna: <#${bot.getChannel(gConf.joinChannel).id}>`)
-                                .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`))
-                            return
-                    }
+
+                    const chanType = chanTypeConv[channelType]
+                    
+                    const embed = new MessageEmbed()
+                        .setTitle(`Beállítások`)
+                        .setColor(`GREEN`)
+                        .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
+                        .setDescription(gConf[`${chanType.dbId}Channel`] == undefined ? `Nincs Üdvözlő csatorna megadva!`
+                                : `${chanType.locName} csatorna: <#${gConf[`${chanType.dbId}Channel`].id}>`)
+
+                    ctx.replyEmbed(embed)
                 } else {
-                    switch (channelType) {
-                        case `welcome`:
-                            const channel = bot.getChannel(category.options[1].value) as TextChannel;
-                            if (!channel.isText()) {
-                                ctx.replyEmbed(ERROR_NOT_TEXT
-                                    .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`), true)
-                                return
-                            }
-                            gConf.joinChannel = category.options[1].value + ``
-                            ctx.replyEmbed(new MessageEmbed()
-                                .setTitle("Beállítások")
-                                .setColor("GREEN")
-                                .setDescription(`Üdvözlőcsatorna beállítva erre: <#${channel.id}>`)
-                                .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`))
-                            break
+                    const channel = bot.getChannel(category.options[1].value) as TextChannel;
+                    if (!channel.isText()) {
+                        ctx.replyEmbed(ERROR_NOT_TEXT
+                            .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`), true)
+                        return
                     }
+
+                    const embed = new MessageEmbed()
+                        .setTitle("Beállítások")
+                        .setColor("GREEN")
+                        .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
+                        .setDescription(`${chanTypeConv[channelType].locName} csatorna beállítva erre: <#${channel.id}>!`)
+
+                    gConf[`${chanTypeConv[channelType].dbId}Channel`] = {
+                        id: channel.id,
+                        name: channel.name
+                    }
+
                     gConf.save()
+
+                    ctx.replyEmbed(embed)
                 }
                 break;
 
@@ -64,3 +69,18 @@ export default new Command()
                 return
         }
     })
+
+const chanTypeConv = {
+    welcome: {
+        dbId: `join`,
+        locName: `Üdvözlő`
+    },
+    leave: {
+        dbId: `leave`,
+        locName: `Távozó`
+    },
+    log: {
+        dbId: `log`,
+        locName: `Napló`
+    }
+}
