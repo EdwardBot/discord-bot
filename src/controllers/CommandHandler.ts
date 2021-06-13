@@ -94,7 +94,7 @@ export class CommandHandler {
             const cmd = this.commands.get(data.data.id)
 
             const member = this.bot.bot.guilds.cache.get(data.guild_id).members.cache.get(data.member.user.id)
-            console.log(`[CommandHandler] User ${member.user.username}#${member.user.discriminator}(${member.user.id}) ran command /${cmd.name}`);
+            console.log(`[CommandHandler] User ${data.member.user.username}#${data.member.user.discriminator}(${data.member.user.id}) ran command /${cmd.name}`);
             let canRun = !cmd.requiesOwner
             let needs = [];
             cmd.requiedPermissions.forEach((e) => {
@@ -204,6 +204,11 @@ export class CommandHandler {
             case `logs`:
                 msg.channel.send(`\`\`\`${this.logs.get(args[0]).join(`\n`)}\`\`\``)
                 break
+
+            case `rcu`:
+                await msg.guild.members.fetch()
+                await msg.channel.send(`Kész.`)
+                break;
 
         }
     }

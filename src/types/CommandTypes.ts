@@ -81,4 +81,3 @@ export interface Interaction {
     name: string;
     id:   string;
 }
-

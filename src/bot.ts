@@ -15,7 +15,7 @@ export class Bot {
     constructor() {
         this.bot = new Client({
             disableMentions: `everyone`,
-            partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`]
+            partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`],
         });
         this.commandHandler = new CommandHandler(this);
         this.databaseHandler = new DatabaseHandler(this);

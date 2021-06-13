@@ -1,12 +1,23 @@
 import { MessageEmbed } from 'discord.js';
-import { Command, CommandContext } from '../controllers/CommandHandler';
+import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from '../controllers/CommandHandler';
 import { bot } from '../main';
 import Kick from '../models/Kick';
-import { CommandCategory } from '../types/CommandTypes';
+import { ButtonInteraction, CommandCategory } from '../types/CommandTypes';
 
 const embed = new MessageEmbed()
     .setTitle(`Ki lettél dobva!`)
     .setColor(`RED`);
+
+const SEARCHING_MEMBERS = new MessageEmbed()
+    .setTitle(`Keresés! <a:edloading:853582551750803466>`)
+    .setDescription(`Emberek keresése!\nEz eltarthat egy kis ideig!`)
+    .setColor(`#1dd1a1`)
+
+const MASS_KICKING_CANCELED = new MessageEmbed()
+    .setTitle(`Kidobás`)
+    .setDescription(`A művelet megszakítva!`)
+    .setColor(`RED`)
+
 
 export default new Command()
     .setName(`kick`)
@@ -14,6 +25,67 @@ export default new Command()
     .setId(`834049049471746068`)
     .addRequiredPermission(`KICK_MEMBERS`)
     .setCategory(CommandCategory.MODERATION)
+    .setOnClick((ctx: CommandContext, args: string[]) => {
+        const inter: ButtonInteraction = ctx.data as any
+
+        const member = ctx.ranBy.guild.members.cache.get(inter.member.user.id)
+
+        if (inter.member.user.id != args[2] && !member.hasPermission(`ADMINISTRATOR`)) {
+            ctx.addRow(inter.message.components as any)
+            ctx.replyEmbed(inter.message.embeds[0])
+            return
+        }
+        switch (args[0]) {
+            case `filter`:
+                if (args[1] == `no`) {
+                    ctx.replyEmbed(MASS_KICKING_CANCELED.addField(`Megszakította`, `<@${inter.member.user.id}>`))
+                    return
+                }
+                const filter = args.slice(3).join(`_`)
+                console.log(`Filter: ${filter}`);
+
+                //Do kicking
+                const members = ctx.ranBy.guild.members.cache.filter((m) => m.user.username.toLowerCase().includes(filter.toLowerCase()))
+
+                members.forEach(async (m) => {
+                    if (member.roles.highest.comparePositionTo(m.roles.highest) <= 0) return
+                    const lastCase = await Kick.find().sort({ case: -1 }).limit(1).exec();
+
+                    const caseId = lastCase.length == 0 ? 1 : (lastCase[0] as any).case + 1;
+
+                    try {
+                        if (m.user.dmChannel == undefined) await m.createDM()
+
+                        m.user.dmChannel.send(`Ki lettél dobva innen: \`${m.guild.name}\`, mert: \`A felhasználóneve tartalmazta a(z) ${filter} szavakat.\``)
+                    } catch (e) {
+
+                    }
+
+                    const data = new Kick({
+                        case: caseId,
+                        reason: `A felhasználóneve tartalmazta a(z) \`${filter}\` szavakat.`,
+                        invite: `nincs megadva`,
+                        hasRejoined: false,
+                        moderator: ctx.ranBy.user.id,
+                        member: m.user.id,
+                        createdAt: `${Date.now()}`,
+                        guild: m.guild.id
+                    })
+
+                    await data.save()
+
+                    await m.kick(`Name containing \`${filter}\``)
+
+                })
+
+                ctx.replyEmbed(new MessageEmbed()
+                    .setTitle(`Kidobás`)
+                    .setColor(`#1dd1a1`)
+                    .setDescription(`A kidobások elkezdődtek és hamarosan befejeződnek! <:edcheck:853584700214870017>`))
+                return
+        }
+        ctx.replyString(`Args: ${args}`)
+    })
     .executes(async function (ctx: CommandContext) {
         const desc = ctx.data.data.options[0].options[1]?.value;
 
@@ -51,7 +123,7 @@ export default new Command()
                 member.user.dmChannel.send(embed.setDescription(`Ki lettél dobva a(z) \`${guild.name}\` szerverről\nIndok: \`${desc != undefined ? desc : `Nincs indok megadva!`}\``))
                 member.user.dmChannel.send(`Meghívó: https://discord.gg/${inv.code}`)
 
-                const lastCase = await Kick.find().sort({case: -1}).limit(1).exec();
+                const lastCase = await Kick.find().sort({ case: -1 }).limit(1).exec();
 
                 const caseId = lastCase.length == 0 ? 1 : (lastCase[0] as any).case + 1;
 
@@ -77,7 +149,7 @@ export default new Command()
                 })
 
                 data.save();
-                
+
                 member.kick(desc)
 
                 ctx.replyEmbed(resp);
@@ -108,7 +180,7 @@ export default new Command()
                     kicked = await bot.bot.users.fetch(kick.member + ``, true);
                 }
                 console.log(kick.createdAt);
-                
+
                 const mod = bot.getUser(kick.moderator);
 
                 const caseE = new MessageEmbed()
@@ -121,5 +193,26 @@ export default new Command()
                     .setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
                 ctx.replyEmbed(caseE)
                 return
+
+            case `filter`:
+                ctx.ranBy.guild.members.fetch()
+                ctx.replyEmbed(SEARCHING_MEMBERS);
+                const filter = ctx.data.data.options[0].options[0].value;
+                const matchedCount = ctx.ranBy.guild.members.cache.filter((m) => m.user.username.toLowerCase().includes(filter.toLowerCase())).size
+
+                const buttons = new ActionRow()
+
+                buttons.addComponent(new ButtonComponent(`Igen`, ButtonStyle.SUCCESS).setCustomId(`ed_cmd_kick_filter_yes_${ctx.ranBy.user.id}_${filter}`))
+                buttons.addComponent(new ButtonComponent(`Nem`, ButtonStyle.DANGER).setCustomId(`ed_cmd_kick_filter_no_${ctx.ranBy.user.id}_${filter}`))
+
+                ctx.addRow(buttons)
+
+                ctx.replyEmbed(new MessageEmbed()
+                    .setTitle(`Kidobás`)
+                    .setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
+                    .addField(`Keresett kifejezés`, `\`\`\`${filter}\`\`\``)
+                    .addField(`Találatok`, `\`\`\`${matchedCount}\`\`\``)
+                    .setColor(`#1dd1a1`))
+                break;
         }
     })
