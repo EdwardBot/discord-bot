@@ -1,12 +1,13 @@
 export interface CovidResponse {
-    infected:            number;
-    activeInfected:      number;
-    deceased:            number;
-    recovered:           number;
-    quarantined:         number;
-    tested:              number;
-    sourceUrl:           string;
-    lastUpdatedAtSource: string;
-    lastUpdatedAtApify:  string;
-    readMe:              string;
+    died:       BrokenDow;
+    infected:   BrokenDow;
+    quarantine: number;
+    recovered:  BrokenDow;
+    sampled:    number;
+    vaccinated: number;
+}
+
+export interface BrokenDow {
+    capital:     number;
+    countryside: number;
 }

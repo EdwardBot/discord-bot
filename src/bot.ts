@@ -61,7 +61,7 @@ export class Bot {
         console.log(`Loading EdwardBot`);
         await this.commandHandler.load();
         this.bot.on(`ready`, () => this.ready())
-        //this.bot.on(`debug`, console.log)
+        this.bot.on(`debug`, console.log)
         this.bot.on(`rateLimit`, (rate) => {
             console.log(`😒 a dc nem szeret. ${rate.limit} másodpercre letiltotta a ${rate.route}-ot!`)
         })
