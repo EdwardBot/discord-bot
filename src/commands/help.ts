@@ -3,7 +3,6 @@ import { bot } from '../main'
 import { categories, CommandCategory } from '../types/CommandTypes'
 import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from '../controllers/CommandHandler'
 import { owner_id } from '../../botconfig.json'
-import { Agent } from 'node:http'
 
 function getCommandsForCategory(category: CommandCategory): Command[] {
     return bot.commandHandler.commands.array().filter((cmd) => cmd.category == category);

@@ -36,10 +36,11 @@ export class JoinLeaveHandler {
 
         if (gConf == undefined) {
             this.bot.migrateGuild(member.guild.id);
+            return
         }
 
         if (gConf.joinChannel != undefined) {
-            const channel = this.bot.getChannel(gConf.joinChannel) as TextChannel
+            const channel = this.bot.getChannel(gConf.joinChannel.id) as TextChannel
             if (channel == undefined) return
             channel.send(`Üdvözöllek a szerveren <@${member.user.id}>! :wave:`)
         }

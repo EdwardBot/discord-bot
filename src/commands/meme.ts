@@ -1,9 +1,8 @@
 import { MessageEmbed } from 'discord.js'
 import { CommandCategory } from '../types/CommandTypes'
 import { Command, CommandContext } from '../controllers/CommandHandler'
-import memeApi from '../controllers/MemeController'
 import { bot } from '../main'
-
+import axios from 'axios'
 
 export default new Command()
     .setName(`meme`)
@@ -12,17 +11,17 @@ export default new Command()
     .setCategory(CommandCategory.FUN)
     .executes(async (ctx: CommandContext) => {
         ctx.setLoading()
-        const meme = memeApi.getData()[Math.floor(Math.random() * memeApi.getData().length)]
+        const { data } = await axios.get(`https://data.edwardbot.tk/meme/random`)
         
         const embed = new MessageEmbed()
             .setTitle("Meme")
             .setTimestamp(Date.now())
             .setColor(`RANDOM`)
             .setAuthor("EdwardBot", bot.bot.user.avatarURL())
-            .setImage(meme.url)
-            .setURL(meme.permalink)
-            .setTitle(meme.title)
-            .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
+            .setImage(data.image)
+            .setURL(data.url)
+            .setTitle(data.title)
+            .setFooter(`Készítette: u/${data.author}`);
 
         ctx.replyEmbed(embed);
     })
