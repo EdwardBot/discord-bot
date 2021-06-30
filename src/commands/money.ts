@@ -24,15 +24,15 @@ export default new Command()
         ctx.setLoading()
         switch (ctx.data.data.options[0].name) {
             case "set":
-                const member = bot.getGuildMember(ctx.data.guild_id, ctx.data.data.options[0].options[0].value)
+                const member = bot.getGuildMember(ctx.data.guild_id as `${bigint}`, ctx.data.data.options[0].options[0].value as `${bigint}`)
 
-                if (member.user.bot) {
-                    ctx.replyEmbed(NO_BOTS_ALLOWED.setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`))
+                if (!ctx.ranBy.permissionsIn(ctx.textChannel).has(`MANAGE_GUILD`) || member.roles.highest.comparePositionTo(ctx.ranBy.roles.highest) > 0) {
+                    ctx.replyEmbed(NO_PERM_EMBED.setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`))
                     return
                 }
 
-                if (!ctx.ranBy.hasPermission(`MANAGE_GUILD`) || member.roles.highest.comparePositionTo(ctx.ranBy.roles.highest) > 0) {
-                    ctx.replyEmbed(NO_PERM_EMBED.setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`))
+                if (member.user.bot) {
+                    ctx.replyEmbed(NO_BOTS_ALLOWED.setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`))
                     return
                 }
 
@@ -51,7 +51,7 @@ export default new Command()
             default:
             case `egyenleg`:
                 if (ctx.data.data.options[0].options != undefined) {
-                    const user = bot.getUser(ctx.data.data.options[0].options[0].value)
+                    const user = bot.getUser(ctx.data.data.options[0].options[0].value as `${bigint}`)
                     const wallet: any = await Wallet.findOne({
                         guildId: ctx.data.guild_id,
                         userId: ctx.data.data.options[0].options[0].value

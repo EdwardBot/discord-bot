@@ -14,7 +14,7 @@ export default new Command()
         const game_id = ctx.data.data.options[0].value;
         const channel_id = ctx.data.data.options[1].value;
 
-        const channel = ctx.ranBy.guild.channels.cache.get(channel_id)
+        const channel = ctx.ranBy.guild.channels.cache.get(channel_id as `${bigint}`)
 
         if (channel) {
             if (channel instanceof VoiceChannel) {

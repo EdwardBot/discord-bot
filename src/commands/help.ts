@@ -247,7 +247,7 @@ export default new Command()
                         canRun = false
                     } else {
                         cmd.requiedPermissions.forEach((e) => {
-                            if (!ctx.ranBy.hasPermission(e)) {
+                            if (!ctx.ranBy.permissionsIn(ctx.textChannel).has(e)) {
                                 canRun = false
                                 return
                             }

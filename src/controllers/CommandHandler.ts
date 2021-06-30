@@ -1,5 +1,5 @@
 import axios from "axios"
-import { Client, Collection, EmojiResolvable, GuildMember, Message, MessageEmbed, PermissionString, TextChannel } from "discord.js"
+import { ButtonInteraction, Client, Collection, CommandInteraction, EmojiResolvable, GuildMember, Interaction, Message, MessageEmbed, MessagePayload, PermissionString, TextChannel } from "discord.js"
 import { readdir } from "fs/promises"
 import { Bot } from "../bot"
 import { InMemoryArrayCache } from "../inMemoryArrayCache"
@@ -23,13 +23,15 @@ export class CommandHandler {
 
     commands: Collection<string, Command>
     bot: Bot
-    logs: Collection<string,string[]>
+    logs: Collection<string, string[]>
 
     cache: InMemoryArrayCache
 
     constructor(bot: Bot) {
         this.bot = bot;
-        bot.bot.ws.on((`INTERACTION_CREATE` as any), (data, shard) => this.onCommand(data, shard))
+        bot.bot.on(`interaction`, (interaction) => {
+            this.onCommand(interaction as any)
+        });
         this.logs = new Collection()
         bot.bot.on(`message`, (msg) => {
             if (!msg.channel.isText()) return
@@ -79,97 +81,76 @@ export class CommandHandler {
     /** 
      * Runs when a command is executed.
      * @param data interaction data
-     * @param shardId magic discord number
     */
-    public async onCommand(data: CommandResponse, shardId: number) {
-        if (data.type == 1) {
-            (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
-                data: {
-                    type: 1
+    public async onCommand(data: Interaction) {
+        if (data.isCommand()) {
+            const i = data as CommandInteraction
+
+            if (this.commands.has((data as CommandInteraction).commandID)) {
+                const cmd = this.commands.get(i.commandID)
+
+                const member = i.guild.members.cache.get(i.member.user.id as `${bigint}`)
+                console.log(`[CommandHandler] User ${data.member.user.username}#${data.member.user.discriminator}(${data.member.user.id}) ran command /${cmd.name}`);
+                let canRun = !cmd.requiesOwner
+                let needs = [];
+                const channel = i.channel
+                cmd.requiedPermissions.forEach((e) => {
+                    if (!member.permissionsIn(channel).has(e)) {
+                        canRun = false;
+                        needs.push(e)
+                    }
+                })
+                const ctx = new CommandContext(this.bot.bot, i)
+                if (canRun) {
+                    cmd.run(ctx)
+                    this.bot.databaseHandler.logCommandRun(cmd.name, member.user, channel as TextChannel);
+                } else {
+                    ctx.replyEmbed(noPermMsg(i.user as any, needs.join(`, `)))
                 }
-            })
+
+
+                //Log it
+                if (this.logs.get(cmd.name)) {
+                    this.logs.get(cmd.name).push(`[CommandHandler] User ${member.user.username}#${member.user.discriminator}(${member.user.id}) ran command /${cmd.name}`)
+                }
+            } else {
+                i.reply({
+                    embeds: [CommandHandler.ERROR_NO_COMMAND],
+                    ephemeral: true
+                })
+            }
             return
         }
-        if (this.commands.has(data.data.id)) {
-            const cmd = this.commands.get(data.data.id)
 
-            const member = this.bot.bot.guilds.cache.get(data.guild_id).members.cache.get(data.member.user.id)
-            console.log(`[CommandHandler] User ${data.member.user.username}#${data.member.user.discriminator}(${data.member.user.id}) ran command /${cmd.name}`);
-            let canRun = !cmd.requiesOwner
-            let needs = [];
-            cmd.requiedPermissions.forEach((e) => {
-                if (!member.hasPermission(e)) {
-                    canRun = false;
-                    needs.push(e)
-                }
-            })
-            const ctx = new CommandContext(this.bot.bot, data)
-            if (canRun) {
-                cmd.run(ctx)
-                this.bot.databaseHandler.incrementCommandsRun();
-            } else {
-                ctx.replyEmbed(noPermMsg(data.member.user, needs.join(`, `)))
+        const i = data as ButtonInteraction
+
+        //Handle button logic
+        const id: string = i.customID;
+
+        if (!id.startsWith(`ed`)) return
+
+        const idPath = id.split(`_`).slice(1)
+        const interaction = data as any
+
+        if (idPath[0] === `cmd`) {
+            const name = idPath[1]
+            const args = idPath.slice(2)
+
+            const cmd = this.commands.find((v) => v.name == name);
+
+            if (cmd == undefined) {
+                i.update({
+                    embeds: [CommandHandler.ERROR_NO_COMMAND],
+                })
+                return
             }
-
-
-            //Log it
-            if (this.logs.get(cmd.name)) {
-                this.logs.get(cmd.name).push(`[CommandHandler] User ${member.user.username}#${member.user.discriminator}(${member.user.id}) ran command /${cmd.name}`)
+            if (cmd.onButtonClick == undefined) {
+                i.update({
+                    embeds: [CommandHandler.ERROR_NO_COMMAND],
+                })
+                return
             }
-        } else if (data.type === 3) {
-            //Handle button logic
-            const id: string = (data.data as any).custom_id;
-
-            if (!id.startsWith(`ed`)) return
-
-            const idPath = id.split(`_`).slice(1)
-            const interaction = data as any
-
-            if (idPath[0] === `cmd`) {
-                const name = idPath[1]
-                const args = idPath.slice(2)
-
-                const cmd = this.commands.find((v) => v.name == name);
-
-                if (cmd == undefined) {
-                    (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
-                        data: {
-                            type: 7,
-                            data: {
-                                tts: false,
-                                content: "",
-                                allowed_mentions: [],
-                                embeds: [CommandHandler.ERROR_NO_COMMAND],
-                                flags: 64
-                            }
-                        }
-                    })
-                    return
-                }
-                if (cmd.onButtonClick == undefined) {
-                    (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
-                        data: {
-                            type: 1
-                        }
-                    })
-                    return
-                }
-                cmd.onButtonClick.call(this, new CommandContext(this.bot.bot, interaction, true), args)
-            }
-        } else {
-            
-            (this.bot.bot as any).api.interactions(data.id, data.token).callback.post({
-                data: {
-                    type: 4,
-                    data: {
-                        tts: false,
-                        content: "",
-                        allowed_mentions: [],
-                        embeds: [CommandHandler.ERROR_NO_COMMAND],
-                        flags: 64
-                    }
-                }
-            })
+            cmd.onButtonClick.call(this, new CommandContext(this.bot.bot, interaction, true), args)
         }
     }
 
@@ -242,7 +223,7 @@ export class ButtonComponent extends Component {
     constructor(label: string, style: number) {
         super()
         this.label = label;
-        this.style = style; 
+        this.style = style;
         this.url = ""
         this.custom_id = ""
     }
@@ -313,7 +294,7 @@ export class CommandContext {
     response: CommandResult
     loading: boolean
     bot: Client
-    data: CommandResponse
+    data: CommandInteraction
     textChannel: TextChannel
     ranBy: GuildMember
     components: ActionRow[]
@@ -323,12 +304,12 @@ export class CommandContext {
      * Creates a CommandContext
      * @param bot the bot instance
      */
-    constructor(bot: Client, data: CommandResponse, isButton?: boolean) {
+    constructor(bot: Client, data: CommandInteraction, isButton?: boolean) {
         this.response = new CommandResult()
         this.bot = bot
         this.data = data
-        this.textChannel = bot.channels.cache.get(data.channel_id) as TextChannel
-        this.ranBy = this.textChannel.guild.members.cache.get(data.member.user.id)
+        this.textChannel = bot.channels.cache.get(data.channelID as `${bigint}`) as TextChannel
+        this.ranBy = this.textChannel.guild.members.cache.get(data.member.user.id as `${bigint}`)
         this.components = []
         this.button = isButton === true
     }
@@ -390,7 +371,7 @@ export class CommandContext {
             })
             this.response.reply = data
             if (status != 200) {
-                (this.bot.channels.cache.get(this.data.channel_id) as TextChannel).send(`Hiba a parancs futtatása során: ${status}`)
+                (this.bot.channels.cache.get(this.data.channelID as `${bigint}`) as TextChannel).send(`Hiba a parancs futtatása során: ${status}`)
             }
         } else {
             await (this.bot as any).api.interactions(this.data.id, this.data.token).callback.post({
@@ -433,7 +414,7 @@ export class CommandContext {
             })
             this.response.reply = data
             if (status != 200) {
-                (this.bot.channels.cache.get(this.data.channel_id) as TextChannel).send(`Hiba a parancs futtatása során: ${status}`)
+                (this.bot.channels.cache.get(this.data.channelID as `${bigint}`) as TextChannel).send(`Hiba a parancs futtatása során: ${status}`)
             }
         } else {
             (this.bot as any).api.interactions(this.data.id, this.data.token).callback.post({

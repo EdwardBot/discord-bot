@@ -14,8 +14,8 @@ export class Bot {
 
     constructor() {
         this.bot = new Client({
-            disableMentions: `everyone`,
-            partials: [`MESSAGE`, `REACTION`, `GUILD_MEMBER`, `USER`],
+            partials: [ "CHANNEL", "GUILD_MEMBER", "MESSAGE", "REACTION", "USER"],
+            intents: [ "GUILD_MESSAGES", "GUILDS" ]
         });
         this.commandHandler = new CommandHandler(this);
         this.databaseHandler = new DatabaseHandler(this);
@@ -32,28 +32,28 @@ export class Bot {
     /**
      * getGuild
      */
-    public getGuild(guildId: string): Guild {
+    public getGuild(guildId: `${bigint}`): Guild {
         return this.bot.guilds.cache.get(guildId);
     }
 
     /**
      * getUser
      */
-    public getUser(member: string): User {
+    public getUser(member: `${bigint}`): User {
         return this.bot.users.cache.get(member);
     }
 
     /**
      * getGuildMember
      */
-     public getGuildMember(guildId: string, userId: string): GuildMember {
+     public getGuildMember(guildId: `${bigint}`, userId: `${bigint}`): GuildMember {
         return this.bot.guilds.cache.get(guildId).members.cache.get(userId);
     }
 
     /**
      * getChannel
      */
-    public getChannel(id: string): Channel {
+    public getChannel(id: `${bigint}`): Channel {
         return this.bot.channels.cache.get(id);
     }
 
@@ -61,7 +61,7 @@ export class Bot {
         console.log(`Loading EdwardBot`);
         await this.commandHandler.load();
         this.bot.on(`ready`, () => this.ready())
-        this.bot.on(`debug`, console.log)
+        //this.bot.on(`debug`, console.log)
         this.bot.on(`rateLimit`, (rate) => {
             console.log(`😒 a dc nem szeret. ${rate.limit} másodpercre letiltotta a ${rate.route}-ot!`)
         })
@@ -88,7 +88,11 @@ export class Bot {
                 .setTitle(`Üdvözöllek! <a:aWave:810086084343365662>`)
                 .setDescription(`Köszi hogy hozzáadtál a szerveredhez!\n> Segítséget találhatsz a discord szerverünkön, vagy a dashboardunkon.\nA prefix /`)
                 .setFooter(`EdwardBot`, this.bot.user.avatarURL())
-            guild.systemChannel ? guild.systemChannel.send(welcome) : (guild.channels.cache.filter((c) => c.isText()).first() as TextChannel).send(welcome);
+            guild.systemChannel ? guild.systemChannel.send({
+                embeds: [welcome]
+            }) : (guild.channels.cache.filter((c) => c.isText()).first() as TextChannel).send({
+                embeds: [welcome]
+            });
             this.updatePresence()
         })
         
@@ -106,10 +110,11 @@ export class Bot {
      */
     public updatePresence() {
         this.bot.user.setPresence({
-            activity: {
+            activities: [{
                 name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help ${process.env.MODE == `DEV` ? `Fejlesztés alatt` : ``}`,
-                type: `WATCHING`
-            }
+                type: `WATCHING`,
+                url: `https://edwardbot.tk`
+            }]
         })
     }
 
@@ -160,7 +165,7 @@ export class Bot {
     /**
      * migrateGuild- recreates the guild config for a guild
      */
-    public migrateGuild(id: string | Guild) {
+    public migrateGuild(id: `${bigint}` | Guild) {
         const guild = typeof id == "string" ? this.getGuild(id) : id;
         new GuildConfig({
             guildId: guild.id,
@@ -174,6 +179,6 @@ export class Bot {
     public async ready() {
         console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
         this.updatePresence();
-        setTimeout(async () => this.migrate())
+        //setTimeout(async () => this.migrate())
     }
 }

@@ -1,9 +1,11 @@
-import { MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel, User } from "discord.js";
 import { connect } from "mongoose";
 import { Bot } from "../bot";
 import Config from "../models/Config";
 import DeletableResponse from "../models/DeletableResponse";
 import GuildConfig from "../models/GuildConfig";
+
+import { Client } from 'pg'
 
 export let commandsRun = 0;
 
@@ -15,36 +17,51 @@ export class DatabaseHandler {
 
     bot: Bot
 
+    client: Client
+
     constructor(bot: Bot) {
         this.bot = bot;
-        this.connect()
-        this.retrogen();
-        this.clean()
+        this.client = new Client({
+            host: `45.135.56.198`,
+            database: `edward`,
+            user: `admin`,
+            port: 5432,
+            password: process.env.DBPASS,
+            connectionTimeoutMillis: 10000,
+            query_timeout: 10000,
+            statement_timeout: 10000
+        })
+        //this.connect();
+        this.client.on(`error`, (err) => console.error(err))
+        this.client.on(`notice`, (n) => console.log(n.message))
+        this.client.connect()
+        process.on(`exit`, async () => {
+            console.log(`Exit`);
+            await this.client.end()
+        })
     }
 
     /**
      * connect
      */
-    public connect() {
+    public async connect() {
+        console.trace(`Connect`)
         console.log(`Connecting to the db.`)
-        connect(`${process.env.MONGODB}/edward?retryWrites=true&w=majority`, {
-            appname: `EdwardBot`,
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        }, (err) => {
-            if (err) {
-                console.log(`Db connection lost, reconnecting!`);
-                const embed = new MessageEmbed()
-                    .setTitle(`Debug`)
-                    .setColor(`RED`)
-                    .setDescription(`Db connection lost, reconnecting!${err ? `\nError: ${err.message}` : ``}`);
-                (this.bot.bot.channels.cache.get(`809097196267372555`) as TextChannel)?.send(embed);
-                setTimeout(() => this.connect(), 5000);
-            } else {
-                console.log(`Connected to the db.`);
-                this.ready()
-            }
-        });
+        try {
+            await this.client.connect();
+            console.log(`Connected!`);
+            
+        } catch (e) {
+            console.log(`Db connection lost, reconnecting!`);
+            const embed = new MessageEmbed()
+                .setTitle(`Debug`)
+                .setColor(`RED`)
+                .setDescription(`Db connection lost, reconnecting!${e ? `\nError: ${e}` : ``}`);
+            (this.bot.bot.channels.cache.get(`809097196267372555`) as TextChannel)?.send({
+                embeds: [embed]
+            });
+            //setTimeout(() => this.connect(), 5000)
+        }
     }
 
     /**
@@ -64,6 +81,7 @@ export class DatabaseHandler {
         }
         commandsRun = Number.parseInt((ran.toObject() as any).value)
         this.updateCommandsRun()
+        
     }
 
     /**
@@ -117,7 +135,29 @@ export class DatabaseHandler {
     /**
      * incrementCommandsRun
      */
-    public incrementCommandsRun() {
-        commandsRun++;
+    public async logCommandRun(name: string, author: User, channel: TextChannel) {
+        console.log(`Igen`);
+        try {
+            console.log(`Inserted${(await this.client.query(`INSERT INTO cmdlog (cmd, author, time, channel, guild) VALUES ($1, $2, now(), $3, $4)`, [
+                name,
+                author.id,
+                channel.id,
+                channel.guild.id
+            ])).rowCount} rows`)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
+    /**
+     * getCommandsRun
+     */
+    public async getCommandsRun(): Promise<string> {
+        try {
+            const row = await this.client.query(`SELECT COUNT(*) FROM cmdlog`)
+            return `${row.rows[0].coutn}`
+        } catch (e) {
+            return `Hiba!`;
+        }
     }
 }

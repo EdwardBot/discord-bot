@@ -14,7 +14,7 @@ export default new Command()
         const game = games[Number.parseInt(args[0])]
 
         if (req.member.user.id != game.player.user.id) {
-            req.message.components.forEach((e) => ctx.addRow(e))
+            (req.message.components as unknown as ActionRow).components.forEach((e) => ctx.addRow(e as any))
             ctx.replyEmbed(req.message.embeds[0])
             return
         }

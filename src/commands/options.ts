@@ -40,7 +40,7 @@ export default new Command()
 
                     ctx.replyEmbed(embed)
                 } else {
-                    const channel = bot.getChannel(category.options[1].value) as TextChannel;
+                    const channel = bot.getChannel(category.options[1].value as `${bigint}`) as TextChannel;
                     if (!channel.isText()) {
                         ctx.replyEmbed(ERROR_NOT_TEXT
                             .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`), true)

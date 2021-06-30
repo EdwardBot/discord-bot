@@ -18,6 +18,9 @@ String.prototype['toHHMMSS'] = function () {
     return hours+':'+minutes+':'+seconds;
 }
 
+process.on(`uncaughtException`, console.error)
+process.on(`unhandledRejection`, console.error)
+
 import { Bot } from "./bot";
 
 export const bot = new Bot();

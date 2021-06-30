@@ -1,5 +1,5 @@
 import axios from "axios";
-import { GuildMember, MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed, UserResolvable } from "discord.js";
 import { User } from "./types/CommandResponse";
 import { SfwWaifu, sfwWaifus } from "./types/CommandTypes";
 
@@ -35,16 +35,13 @@ export async function getBadges(member: GuildMember) : Promise<string[]> {
                 case `HYPESQUAD_EVENTS`:
                     return `<:HypeSquad_Events:834074651629191238>`
 
-                case `EARLY_VERIFIED_DEVELOPER`:
-                    return `<:Early_Verified_Bot_Developer:834074651620671528>`
-
-                case `VERIFIED_DEVELOPER`:
+                case `EARLY_VERIFIED_BOT_DEVELOPER`:
                     return `<:Early_Verified_Bot_Developer:834074651620671528>`
 
                 case `EARLY_SUPPORTER`:
                     return `<:Early_Supporter:834074651902083102>`
 
-                case `DISCORD_PARTNER`:
+                case `PARTNERED_SERVER_OWNER`:
                     return `<:Partner:834074651637710938>`
 
                 case `BUGHUNTER_LEVEL_1`:

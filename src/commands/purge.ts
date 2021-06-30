@@ -10,7 +10,7 @@ export default {
     requiedPermissions: [ (`MANAGE_MESSAGES` as PermissionString)],
     category: CommandCategory.MODERATION,
     run: async function (bot: Client, tc: TextChannel, data: CommandResponse) {
-        switch (data.data.options[0].name) {
+        /*switch (data.data.options[0].name) {
             case "felhasználó":
                 if (data.data.options == undefined) return sendError(tc, data.member, false);
                 if (data.data.options[0] == undefined) return sendError(tc, data.member, false);
@@ -110,10 +110,10 @@ export default {
                     msgC.delete()
                 }, 15000);
                 break;
-        }
+        }*/
     }
 }
-
+/*
 async function sendError(tc: TextChannel, member: Member, isC: boolean) {
     const purgeCE = new MessageEmbed()
         .setTitle("Hiba")
@@ -126,3 +126,4 @@ async function sendError(tc: TextChannel, member: Member, isC: boolean) {
     }
     const msg = await tc.send(purgeCE)
 }
+*/

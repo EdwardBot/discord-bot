@@ -1,6 +1,5 @@
 import { Client, TextChannel, MessageEmbed } from 'discord.js'
 import { CommandResponse, Member } from '../types/CommandResponse'
-import { getStatus } from 'mc-server-status'
 import { CommandCategory } from '../types/CommandTypes'
 
 export default {
@@ -16,7 +15,9 @@ export default {
             .setDescription(`Lekérdezés...`)
             .setTimestamp(Date.now())
             .setFooter(`Lefuttatta: ${data.member.user.username}#${data.member.user.discriminator}`);
-        const msg = await tc.send(embed)
+        const msg = await tc.send({
+            embeds: [embed]
+        })
 
         if (data.data.options == undefined) return sendError(tc, data.member);
         if (data.data.options[0] == undefined) return sendError(tc, data.member);
@@ -32,7 +33,7 @@ export default {
             port = Number.parseInt(arr[1]);
         }
 
-        (hasPort ? getStatus(hostname, port) : getStatus(hostname)).then((status) => {
+        /*(hasPort ? getStatus(hostname, port) : getStatus(hostname)).then((status) => {
             embed.setDescription(``)
                 .addField(`Ping:`, `${status.ping}ms`)
                 .addField(`Leírás:`, ((status.description as any).text ? (status.description as any).text : (status.description as any).extra[0].text).replace(/\xA7[0-9A-FK-OR]+/g, ""))
@@ -47,7 +48,7 @@ export default {
                 .addField(`Ip:`, `${hostname}${hasPort ? `:${port}` : ``}`)
 
             msg.edit(embed);
-        });
+        });*/
     }
 }
 
@@ -59,9 +60,4 @@ async function sendError(tc: TextChannel, member: Member) {
         .setFooter(`Lefuttatta: ${member.user.username}#${member.user.discriminator}`);
 
     purgeCE.setDescription(`Használd így: \`/mcszerver <ip>\``)
-
-    const msg = await tc.send(purgeCE)
-    const timeout = setTimeout(() => {
-        msg.delete()
-    }, 15000);
 }

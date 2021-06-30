@@ -5,12 +5,13 @@
     "main": "main.js",
     "dependencies": {
         "axios": "^0.21.1",
-        "discord.js": "^12.5.1",
-        "mc-server-status": "^2.0.2",
+        "discord.js": "^13.0.0-dev.e37ef3af2151e556527ccd8e98ec531bdcc0ed70",
         "mongoose": "^5.12.2",
-        "nerdamer": "^1.1.10"
+        "nerdamer": "^1.1.10",
+        "pg": "^8.6.0"
     },
     "devDependencies": {
+        "@types/pg": "^8.6.0",
         "@types/node": "^14.14.22",
         "dotenv": "^8.2.0",
         "ts-node": "^9.1.1",

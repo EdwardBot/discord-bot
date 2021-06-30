@@ -30,7 +30,7 @@ export default new Command()
 
         const member = ctx.ranBy.guild.members.cache.get(inter.member.user.id)
 
-        if (inter.member.user.id != args[2] && !member.hasPermission(`ADMINISTRATOR`)) {
+        if (inter.member.user.id != args[2] && !member.permissionsIn(ctx.textChannel).has(`ADMINISTRATOR`)) {
             ctx.addRow(inter.message.components as any)
             ctx.replyEmbed(inter.message.embeds[0])
             return
@@ -91,11 +91,11 @@ export default new Command()
 
         const id = ctx.data.data.options[0].options[0].value;
 
-        const guild = bot.getGuild(ctx.data.guild_id)
+        const guild = bot.getGuild(ctx.data.guild_id as `${bigint}`)
 
         switch (ctx.data.data.options[0].name) {
             case `ember`:
-                const member = bot.getGuildMember(ctx.data.guild_id, id)
+                const member = bot.getGuildMember(ctx.data.guild_id as `${bigint}`, id as `${bigint}`)
                 if (member == undefined) {
                     ctx.replyString(`Nincs ilyen ember!`)
                     return
@@ -115,12 +115,12 @@ export default new Command()
                     await member.user.createDM();
                 }
 
-                const inv = await guild.channels.cache.get(ctx.data.channel_id).createInvite({
+                const inv = await guild.channels.cache.get(ctx.data.channel_id as `${bigint}`).createInvite({
                     maxUses: 1,
                     reason: `Kick utáni csatlakozás`,
                 })
 
-                member.user.dmChannel.send(embed.setDescription(`Ki lettél dobva a(z) \`${guild.name}\` szerverről\nIndok: \`${desc != undefined ? desc : `Nincs indok megadva!`}\``))
+                member.user.dmChannel.send({ embeds: [embed.setDescription(`Ki lettél dobva a(z) \`${guild.name}\` szerverről\nIndok: \`${desc != undefined ? desc : `Nincs indok megadva!`}\``)] })
                 member.user.dmChannel.send(`Meghívó: https://discord.gg/${inv.code}`)
 
                 const lastCase = await Kick.find().sort({ case: -1 }).limit(1).exec();
@@ -156,7 +156,7 @@ export default new Command()
                 return
 
             case `rang`:
-                const members = bot.getGuild(ctx.data.guild_id).members.cache.array().filter((m) => m.roles.cache.has(ctx.data.data.options[0].options[0].value));
+                const members = bot.getGuild(ctx.data.guild_id as `${bigint}`).members.cache.array().filter((m) => m.roles.cache.has(ctx.data.data.options[0].options[0].value as `${bigint}`));
                 ctx.replyString(members.map((u) => u.user.username).join(` `) + `\`Nincs kész\``)
                 break
 
@@ -177,7 +177,9 @@ export default new Command()
 
                 let kicked = bot.getUser(kick.member);
                 if (kicked == undefined) {
-                    kicked = await bot.bot.users.fetch(kick.member + ``, true);
+                    kicked = await bot.bot.users.fetch(kick.member as `${bigint}`, {
+                        cache: true
+                    });
                 }
                 console.log(kick.createdAt);
 
