@@ -3,8 +3,6 @@ import { CommandHandler } from "./controllers/CommandHandler";
 import { DatabaseHandler } from "./controllers/DatabaseHandler";
 import { JoinLeaveHandler } from "./controllers/JoinLeaveHandler";
 import { botAdmins } from "../botconfig.json";
-import GuildConfig from "./models/GuildConfig";
-import Wallet from "./models/Wallet";
 
 export class Bot {
     bot: Client
@@ -77,13 +75,11 @@ export class Bot {
         })
         //Temp
         this.bot.on(`guildCreate`, (guild) => {
-            new GuildConfig({
-                guildId: guild.id,
-                joinedAt: Date.now(),
-                allowLogging: false,
-                allowWelcome: false,
-                botAdmins: [guild.ownerID]
-            }).save();
+            try {
+                this.databaseHandler.client.query(`insert into "guild-configs" ("GuildId", "BotAdmins") values ($1,$2)`, [guild.id, [guild.ownerID]])
+            } catch (e) {
+                console.error(e)
+            }
             const welcome = new MessageEmbed()
                 .setTitle(`Üdvözöllek! <a:aWave:810086084343365662>`)
                 .setDescription(`Köszi hogy hozzáadtál a szerveredhez!\n> Segítséget találhatsz a discord szerverünkön, vagy a dashboardunkon.\nA prefix /`)
@@ -97,9 +93,11 @@ export class Bot {
         })
         
         this.bot.on(`guildDelete`, async (guild) => {
-            (await GuildConfig.findOne({
-                guildId: guild.id
-            })).deleteOne();
+            try {
+                this.databaseHandler.client.query(`delete from "guild-configs" where "GuildId"=$1`, [guild.id])
+            } catch (e) {
+                console.error(e)
+            }
             this.updatePresence();
         })
         this.bot.login(process.env.TOKEN)
@@ -125,10 +123,10 @@ export class Bot {
         return this.bot.ws.ping;
     }
 
-    /**
+    /*/**
      * migrate - retrogen for db data
      */
-    public async migrate() {
+    /*public async migrate() {
         console.log(`[RetroGen:main] Starting migration check.`);
         
         await this.bot.guilds.cache.forEach(async (g) => {
@@ -160,25 +158,11 @@ export class Bot {
             });
         })
         console.log(`[RetroGen:main] Finished migration check.`);
-    }
-
-    /**
-     * migrateGuild- recreates the guild config for a guild
-     */
-    public migrateGuild(id: `${bigint}` | Guild) {
-        const guild = typeof id == "string" ? this.getGuild(id) : id;
-        new GuildConfig({
-            guildId: guild.id,
-            joinedAt: Date.now(),
-            allowLogging: false,
-            allowWelcome: false,
-            botAdmins: [guild.ownerID]
-        }).save();
-    }
+    }*/
 
     public async ready() {
         console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
         this.updatePresence();
-        //setTimeout(async () => this.migrate())
+        this.databaseHandler.retrogen()
     }
 }

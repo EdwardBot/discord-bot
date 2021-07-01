@@ -1,7 +1,6 @@
-import { MessageEmbed } from "discord.js";
+import { GuildMember, MessageEmbed } from "discord.js";
 import { Command, CommandContext } from "../controllers/CommandHandler";
 import { bot } from "../main";
-import Wallet from "../models/Wallet";
 import { CommandCategory } from "../types/CommandTypes";
 
 const NO_PERM_EMBED = new MessageEmbed()
@@ -14,6 +13,7 @@ const NO_BOTS_ALLOWED = new MessageEmbed()
     .setColor(`RED`)
     .setDescription(`Botoknak nem lehet pénze! :pensive:`)
 
+const db = bot.databaseHandler.client;
 
 export default new Command()
     .setName(`pénz`)
@@ -21,10 +21,11 @@ export default new Command()
     .setId(`843903448817598515`)
     .setCategory(CommandCategory.FUN)
     .executes(async (ctx: CommandContext) => {
+        const args = ctx.data.options.array()
         ctx.setLoading()
-        switch (ctx.data.data.options[0].name) {
+        switch (args[0].name) {
             case "set":
-                const member = bot.getGuildMember(ctx.data.guild_id as `${bigint}`, ctx.data.data.options[0].options[0].value as `${bigint}`)
+                const member = ctx.data.member as GuildMember
 
                 if (!ctx.ranBy.permissionsIn(ctx.textChannel).has(`MANAGE_GUILD`) || member.roles.highest.comparePositionTo(ctx.ranBy.roles.highest) > 0) {
                     ctx.replyEmbed(NO_PERM_EMBED.setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`))
@@ -36,35 +37,33 @@ export default new Command()
                     return
                 }
 
-                const val = Number.parseInt(ctx.data.data.options[0].options[1].value)
-                const w: any = await Wallet.findOne({
-                    guildId: ctx.data.guild_id,
-                    userId: member.id
-                })
+                const val = args[0].options.array()[1].value as number
 
-                w.balance = val;
-                w.save();
-
-                ctx.replyString(`${member.user.username}#${member.user.discriminator} egyenlege beállítva erre: ${val}$`)
+                try {
+                    await db.query(`UPDATE wallets SET balance=$1 WHERE guild=$2 AND userid=$3`, [
+                        val,
+                        ctx.data.guildID,
+                        ctx.data.user.id
+                    ]);
+                    ctx.replyString(`${member.user.username}#${member.user.discriminator} egyenlege beállítva erre: ${val}$`)
+                } catch (e) {
+                    console.log(e);
+                    ctx.replyString(`Hiba történt!`)
+                }
                 return
-            
+
             default:
             case `egyenleg`:
-                if (ctx.data.data.options[0].options != undefined) {
-                    const user = bot.getUser(ctx.data.data.options[0].options[0].value as `${bigint}`)
-                    const wallet: any = await Wallet.findOne({
-                        guildId: ctx.data.guild_id,
-                        userId: ctx.data.data.options[0].options[0].value
-                    })
-                    ctx.replyString(`${user.username}#${user.discriminator} egyenlege: ${wallet.balance}$`)
-                    return
+                const user = args[0].options != undefined ? args[0].options.array()[0].user : ctx.data.user
+                try {
+                    const { rows } = await db.query(`SELECT * FROM wallets WHERE guild=$1 AND userid=$2`, [
+                        ctx.data.guildID,
+                        user.id
+                    ])
+                    ctx.replyString(`${user.username}#${user.discriminator} egyenlege: ${rows[0].balance}$`)
+                } catch (e) {
+                    ctx.replyString(`Hiba történt!`)
                 }
-                const wallet: any = await Wallet.findOne({
-                    guildId: ctx.data.guild_id,
-                    userId: ctx.ranBy.user.id
-                })
-                ctx.replyString(`Egyenleged: ${wallet.balance}$`)
-                
                 return
         }
     });

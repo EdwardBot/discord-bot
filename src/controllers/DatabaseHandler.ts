@@ -1,9 +1,5 @@
-import { MessageEmbed, TextChannel, User } from "discord.js";
-import { connect } from "mongoose";
+import { TextChannel, User } from "discord.js";
 import { Bot } from "../bot";
-import Config from "../models/Config";
-import DeletableResponse from "../models/DeletableResponse";
-import GuildConfig from "../models/GuildConfig";
 
 import { Client } from 'pg'
 
@@ -31,7 +27,6 @@ export class DatabaseHandler {
             query_timeout: 10000,
             statement_timeout: 10000
         })
-        //this.connect();
         this.client.on(`error`, (err) => console.error(err))
         this.client.on(`notice`, (n) => console.log(n.message))
         this.client.connect()
@@ -42,122 +37,60 @@ export class DatabaseHandler {
     }
 
     /**
-     * connect
-     */
-    public async connect() {
-        console.trace(`Connect`)
-        console.log(`Connecting to the db.`)
-        try {
-            await this.client.connect();
-            console.log(`Connected!`);
-            
-        } catch (e) {
-            console.log(`Db connection lost, reconnecting!`);
-            const embed = new MessageEmbed()
-                .setTitle(`Debug`)
-                .setColor(`RED`)
-                .setDescription(`Db connection lost, reconnecting!${e ? `\nError: ${e}` : ``}`);
-            (this.bot.bot.channels.cache.get(`809097196267372555`) as TextChannel)?.send({
-                embeds: [embed]
-            });
-            //setTimeout(() => this.connect(), 5000)
-        }
-    }
-
-    /**
-     * ready - Runs when the DB is ready
-     * @author Bendi
-     */
-    public async ready() {
-        let ran = await Config.findOne({
-            key: `stats.commands_run`
-        });
-        if (ran == null || ran == undefined) {
-            const asd = new Config({
-                key: `stats.commands_run`,
-                value: `100`
-            })
-            ran = await asd.save();
-        }
-        commandsRun = Number.parseInt((ran.toObject() as any).value)
-        this.updateCommandsRun()
-        
-    }
-
-    /**
      * retrogen - Generates data to old servers
      */
     public retrogen() {
+        console.log(`Retrogen`);
+        
         this.bot.bot.guilds.cache.forEach(async (guild) => {
-            const d = await GuildConfig.findOne({
-                guildId: guild.id
-            }).catch((err) => {
-                console.log(`DB Error: ${err}`)
-            });
-            if (!d) {
-                console.log(`retrogen for ${guild.name}`)
-                new GuildConfig({
-                    guildId: guild.id,
-                    joinedAt: Date.now(),
-                    allowLogging: false,
-                    allowWelcome: false,
-                    botAdmins: [guild.ownerID]
-                }).save();
+            try {
+                const { rows } = await this.client.query(`select * from "guild-configs" where "GuildId"=$1`, [guild.id])
+            
+                if (rows.length > 0) return;
+                await this.client.query(`insert into "guild-configs" ("GuildId", "BotAdmins") values ($1,$2)`, [guild.id, [guild.ownerID]])
+            } catch (e) {
+                console.error(`Error: ${e}`)
             }
         })
-    }
-
-    /**
-     * updateCommandsRun
-     */
-    public async updateCommandsRun() {
-        const obj = await Config.findOne({
-            key: `stats.commands_run`
-        });
-        await obj.updateOne({
-            key: `stats.commands_run`,
-            value: `${commandsRun}`
-        })
-        setTimeout(() => this.updateCommandsRun(), 20000)
-    }
-
-    private async clean() {
-        //Clean the database
-        //First clear deletable messages
-        let cutoff = new Date();
-        cutoff.setHours(cutoff.getHours() - 1)
-        DeletableResponse.deleteMany({ createdAt: { $lte: cutoff.getTime() } });
-
-        //Do the same later
-        setTimeout(() => this.clean(), 3600000)
     }
 
     /**
      * incrementCommandsRun
      */
     public async logCommandRun(name: string, author: User, channel: TextChannel) {
-        console.log(`Igen`);
         try {
-            console.log(`Inserted${(await this.client.query(`INSERT INTO cmdlog (cmd, author, time, channel, guild) VALUES ($1, $2, now(), $3, $4)`, [
+            await this.client.query(`INSERT INTO cmdlog (cmd, author, time, channel, guild) VALUES ($1, $2, now(), $3, $4)`, [
                 name,
                 author.id,
                 channel.id,
                 channel.guild.id
-            ])).rowCount} rows`)
+            ])
         } catch (e) {
             console.error(e)
         }
     }
 
     /**
-     * getCommandsRun
+     * getCommandsRun returns the commands run with the bot
      */
     public async getCommandsRun(): Promise<string> {
         try {
             const row = await this.client.query(`SELECT COUNT(*) FROM cmdlog`)
-            return `${row.rows[0].coutn}`
+            return `${row.rows[0].count}`
         } catch (e) {
             return `Hiba!`;
+        }
+    }
+
+    /**
+     * getCommandsRunInGuild
+     */
+    public async getCommandsRunInGuild(guildId: string): Promise<string> {
+        try {
+            const { rows } = await this.client.query(`SELECT COUNT(*) FROM cmdlog WHERE guild=$1`, [guildId])
+            return rows[0].count
+        } catch (e) {
+            return `Hiba!`
         }
     }
 }

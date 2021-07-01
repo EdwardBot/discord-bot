@@ -28,13 +28,14 @@ const cmd = new Command()
     .setId(`816262748341927976`)
     .setCategory(CommandCategory.MISC)
     .executes(async function(ctx: CommandContext) {
-        if (ctx.data.data.options == undefined) return sendError(ctx, false)
-        const input = ctx.data.data.options[0].value;
+        const args = ctx.data.options.array();
+        if (args[0] == undefined) return sendError(ctx, false)
+        const input = args[0].value;
         try {
-            const output = nerdamer(input).evaluate().text()
+            const output = nerdamer(input + ``).evaluate().text()
             const embed = new MessageEmbed()
             .setTitle("Számológép")
-            .addField("Művelet:", ctx.data.data.options[0].value)
+            .addField("Művelet:", args[0].value + ``)
             .addField("Eredmény:", output)
             .setTimestamp(Date.now())
             .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);

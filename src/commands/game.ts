@@ -11,8 +11,8 @@ export default new Command()
     .executes(async (ctx: CommandContext) => {
         ctx.setLoading();
 
-        const game_id = ctx.data.data.options[0].value;
-        const channel_id = ctx.data.data.options[1].value;
+        const game_id = ctx.data.options.array()[0].value;
+        const channel_id = ctx.data.options.array()[1].value;
 
         const channel = ctx.ranBy.guild.channels.cache.get(channel_id as `${bigint}`)
 

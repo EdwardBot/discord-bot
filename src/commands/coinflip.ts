@@ -8,7 +8,7 @@ const cmd = new Command()
     .setId(`831220744783527957`)
     .setCategory(CommandCategory.FUN)
     .executes(async function(ctx: CommandContext) {
-        const val = ctx.data.data.options[0].value;
+        const val = ctx.data.options.array()[0].value;
         const res = Math.random() > 0.5;
 
         const win = (res && val == `HEAD`) || (!res && val == `WRITING`);

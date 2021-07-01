@@ -1,7 +1,5 @@
 import { GuildMember, PartialGuildMember, TextChannel } from "discord.js";
 import { Bot } from "../bot";
-import GuildConfig from "../models/GuildConfig";
-import Kick from "../models/Kick";
 
 export class JoinLeaveHandler {
 
@@ -18,7 +16,8 @@ export class JoinLeaveHandler {
      * join
      */
     public async join(member: GuildMember) {
-        const kick = (await Kick.find({
+        //TODO add this back
+        /*const kick = (await Kick.find({
             member: member.user.id,
             hasRejoined: false
         }).sort({
@@ -28,21 +27,23 @@ export class JoinLeaveHandler {
         if (kick) {
             (kick as any).hasRejoined = true;
             kick.updateOne(kick).exec()
-        }
+        }*/
 
-        const gConf: any = await GuildConfig.findOne({
-            guildId: member.guild.id
-        })
+        try {
+            const { rows } = await this.bot.databaseHandler.client.query(`SELECT * FROM "guild-configs" WHERE "GuildId"=$1`, [member.guild.id])
+            const data = rows[0]
 
-        if (gConf == undefined) {
-            this.bot.migrateGuild(member.guild.id);
-            return
-        }
+            console.log(JSON.stringify(data));
+            
 
-        if (gConf.joinChannel != undefined) {
-            const channel = this.bot.getChannel(gConf.joinChannel.id) as TextChannel
-            if (channel == undefined) return
-            channel.send(`Üdvözöllek a szerveren <@${member.user.id}>! :wave:`)
+            const allowed = ((data.AllowedFeatures as number) & 2) == 2
+            if (allowed) {
+                const channel = this.bot.getChannel(data.JoinChannel) as TextChannel
+                if (channel == undefined) return
+                channel.send(`Üdvözöllek a szerveren <@${member.user.id}>! :wave:`)
+            }
+        } catch (e) {
+            console.error(e)
         }
     }
 

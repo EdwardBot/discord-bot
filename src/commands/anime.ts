@@ -11,7 +11,7 @@ const cmd = new Command()
     .setCategory(CommandCategory.FUN)
     .executes(async function (ctx: CommandContext) {
         let type = undefined;
-        if (ctx.data.data.options) type = ctx.data.data.options[0].value;
+        if (ctx.data.options.array()[0]) type = ctx.data.options.array()[0].value;
         const embed = new MessageEmbed()
             .setTitle(`Anime`)
             .setTimestamp(Date.now())

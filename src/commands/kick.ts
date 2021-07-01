@@ -1,7 +1,6 @@
-import { MessageEmbed } from 'discord.js';
+import { CommandInteraction, Guild, GuildMember, MessageEmbed, TextChannel } from 'discord.js';
 import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from '../controllers/CommandHandler';
 import { bot } from '../main';
-import Kick from '../models/Kick';
 import { ButtonInteraction, CommandCategory } from '../types/CommandTypes';
 
 const embed = new MessageEmbed()
@@ -11,13 +10,15 @@ const embed = new MessageEmbed()
 const SEARCHING_MEMBERS = new MessageEmbed()
     .setTitle(`Keresés! <a:edloading:853582551750803466>`)
     .setDescription(`Emberek keresése!\nEz eltarthat egy kis ideig!`)
-    .setColor(`#1dd1a1`)
+    .setColor(`#1dd1a1`);
 
 const MASS_KICKING_CANCELED = new MessageEmbed()
     .setTitle(`Kidobás`)
     .setDescription(`A művelet megszakítva!`)
-    .setColor(`RED`)
+    .setColor(`RED`);
 
+
+const db = bot.databaseHandler.client;
 
 export default new Command()
     .setName(`kick`)
@@ -49,33 +50,27 @@ export default new Command()
 
                 members.forEach(async (m) => {
                     if (member.roles.highest.comparePositionTo(m.roles.highest) <= 0) return
-                    const lastCase = await Kick.find().sort({ case: -1 }).limit(1).exec();
-
-                    const caseId = lastCase.length == 0 ? 1 : (lastCase[0] as any).case + 1;
 
                     try {
                         if (m.user.dmChannel == undefined) await m.createDM()
 
                         m.user.dmChannel.send(`Ki lettél dobva innen: \`${m.guild.name}\`, mert: \`A felhasználóneve tartalmazta a(z) ${filter} szavakat.\``)
                     } catch (e) {
-
                     }
 
-                    const data = new Kick({
-                        case: caseId,
-                        reason: `A felhasználóneve tartalmazta a(z) \`${filter}\` szavakat.`,
-                        invite: `nincs megadva`,
-                        hasRejoined: false,
-                        moderator: ctx.ranBy.user.id,
-                        member: m.user.id,
-                        createdAt: `${Date.now()}`,
-                        guild: m.guild.id
-                    })
+                    try {
+                        await db.query(`insert into kicks (guild, member, moderator, reason) values ($1,$2,$3,$4)`, [
+                            ctx.data.guildID,
+                            m.user.id,
+                            ctx.data.user.id,
+                            `A felhasználóneve tartalmazta a(z) \`${filter}\` szavakat.`
+                        ])
+                    } catch (e) {
+                        (ctx.data as CommandInteraction).reply(`Hiba történt \`${m.user.id}#${m.user.discriminator}\` kickelése közben`)
+                    }
 
-                    await data.save()
 
-                    await m.kick(`Name containing \`${filter}\``)
-
+                    await m.kick(`EdwardBot> A felhasználóneve tartalmazta a(z) \`${filter}\` szavakat.`)
                 })
 
                 ctx.replyEmbed(new MessageEmbed()
@@ -87,15 +82,15 @@ export default new Command()
         ctx.replyString(`Args: ${args}`)
     })
     .executes(async function (ctx: CommandContext) {
-        const desc = ctx.data.data.options[0].options[1]?.value;
+        const args = ctx.data.options.array();
 
-        const id = ctx.data.data.options[0].options[0].value;
+        const desc = args[0].options.array()[1]?.value;
 
-        const guild = bot.getGuild(ctx.data.guild_id as `${bigint}`)
+        const guild = ctx.data.guild
 
-        switch (ctx.data.data.options[0].name) {
+        switch (args[0].name) {
             case `ember`:
-                const member = bot.getGuildMember(ctx.data.guild_id as `${bigint}`, id as `${bigint}`)
+                const member = args[0].options.array()[0].member as GuildMember
                 if (member == undefined) {
                     ctx.replyString(`Nincs ilyen ember!`)
                     return
@@ -115,7 +110,7 @@ export default new Command()
                     await member.user.createDM();
                 }
 
-                const inv = await guild.channels.cache.get(ctx.data.channel_id as `${bigint}`).createInvite({
+                const inv = await (ctx.data.channel as TextChannel).createInvite({
                     maxUses: 1,
                     reason: `Kick utáni csatlakozás`,
                 })
@@ -123,9 +118,22 @@ export default new Command()
                 member.user.dmChannel.send({ embeds: [embed.setDescription(`Ki lettél dobva a(z) \`${guild.name}\` szerverről\nIndok: \`${desc != undefined ? desc : `Nincs indok megadva!`}\``)] })
                 member.user.dmChannel.send(`Meghívó: https://discord.gg/${inv.code}`)
 
-                const lastCase = await Kick.find().sort({ case: -1 }).limit(1).exec();
+                let caseId = -1
 
-                const caseId = lastCase.length == 0 ? 1 : (lastCase[0] as any).case + 1;
+                try {
+                    const { rows } = await db.query(`insert into kicks (guild, member, moderator, reason) values ($1,$2,$3,$4) returning id as case`, [
+                        ctx.data.guildID,
+                        member.user.id,
+                        ctx.data.user.id,
+                        desc
+                    ])
+                    caseId = rows[0].case
+                    await db.query(`select * from kicks where guild`)
+                } catch (e) {
+
+                }
+
+                member.kick(desc as string)
 
                 const resp = new MessageEmbed()
                     .setTitle("Felhasználó kidobva!")
@@ -137,36 +145,20 @@ export default new Command()
                     .setTimestamp(Date.now())
                     .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
 
-                const data = new Kick({
-                    case: caseId,
-                    reason: desc,
-                    invite: inv.code,
-                    hasRejoined: false,
-                    moderator: ctx.ranBy.user.id,
-                    member: member.user.id,
-                    createdAt: `${Date.now()}`,
-                    guild: ctx.data.guild_id
-                })
-
-                data.save();
-
-                member.kick(desc)
-
                 ctx.replyEmbed(resp);
                 return
 
             case `rang`:
-                const members = bot.getGuild(ctx.data.guild_id as `${bigint}`).members.cache.array().filter((m) => m.roles.cache.has(ctx.data.data.options[0].options[0].value as `${bigint}`));
+                const members = (ctx.data.guild as Guild).members.cache.array().filter((m) => m.roles.cache.has(args[0].options.array()[0].value as `${bigint}`));
                 ctx.replyString(members.map((u) => u.user.username).join(` `) + `\`Nincs kész\``)
                 break
 
             case `eset`:
-                const kick: any = await Kick.findOne({
-                    guild: ctx.data.guild_id,
-                    case: ctx.data.data.options[0].options[0].value
-                }).exec();
-
-                if (kick == null) {
+                let kick;
+                try {
+                    const { rows } = await db.query(`select * from kicks where id=$1`, [args[0].options.array()[0].value])
+                    kick = rows[0];
+                } catch (e) {
                     ctx.replyEmbed(new MessageEmbed()
                         .setTitle(`Hiba!`)
                         .setColor(`RED`)
@@ -181,17 +173,21 @@ export default new Command()
                         cache: true
                     });
                 }
-                console.log(kick.createdAt);
 
-                const mod = bot.getUser(kick.moderator);
+                let mod = bot.getUser(kick.moderator);
+                if (mod == undefined) {
+                    mod = await bot.bot.users.fetch(kick.moderator as `${bigint}`, {
+                        cache: true
+                    });
+                }
 
                 const caseE = new MessageEmbed()
                     .setTitle(`Eset #${kick.case}`)
                     .addField(`Kidobott ember: `, `\`\`\`${kicked?.username}#${kicked?.discriminator}\`\`\``)
                     .addField(`Moderátor: `, `\`\`\`${mod.username}#${mod.discriminator}\`\`\``)
                     .addField(`Indok: `, `\`\`\`${kick.reason}\`\`\``)
-                    .addField(`Időpont:`, `\`\`\`${new Date(Number.parseInt(kick.createdAt)).toLocaleString()}\`\`\``)
-                    .addField(`Visszacsatlakozott:`, `\`\`\`${kick.hasRejoined ? `Igen` : `Nem`}\`\`\``)
+                    .addField(`Időpont:`, `\`\`\`${new Date(Number.parseInt(kick.timestamp)).toLocaleString()}\`\`\``)
+                    .addField(`Visszacsatlakozott:`, `\`\`\`${kick.rejoined ? `Igen` : `Nem`}\`\`\``)
                     .setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
                 ctx.replyEmbed(caseE)
                 return
@@ -199,13 +195,13 @@ export default new Command()
             case `filter`:
                 ctx.ranBy.guild.members.fetch()
                 ctx.replyEmbed(SEARCHING_MEMBERS);
-                const filter = ctx.data.data.options[0].options[0].value;
-                const matchedCount = ctx.ranBy.guild.members.cache.filter((m) => m.user.username.toLowerCase().includes(filter.toLowerCase())).size
+                const filter = args[0].options.array()[0].value;
+                const matchedCount = ctx.ranBy.guild.members.cache.filter((m) => m.user.username.toLowerCase().includes((filter as string).toLowerCase())).size
 
                 const buttons = new ActionRow()
 
-                buttons.addComponent(new ButtonComponent(`Igen`, ButtonStyle.SUCCESS).setCustomId(`ed_cmd_kick_filter_yes_${ctx.ranBy.user.id}_${filter}`))
-                buttons.addComponent(new ButtonComponent(`Nem`, ButtonStyle.DANGER).setCustomId(`ed_cmd_kick_filter_no_${ctx.ranBy.user.id}_${filter}`))
+                buttons.addComponent(new ButtonComponent(`Kidobás`, ButtonStyle.SUCCESS).setCustomId(`ed_cmd_kick_filter_yes_${ctx.ranBy.user.id}_${filter}`))
+                buttons.addComponent(new ButtonComponent(`Mégsem`, ButtonStyle.DANGER).setCustomId(`ed_cmd_kick_filter_no_${ctx.ranBy.user.id}_${filter}`))
 
                 ctx.addRow(buttons)
 

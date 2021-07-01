@@ -9,7 +9,7 @@ export default new Command()
     .setId(`831516867305930783`)
     .setCategory(CommandCategory.FUN)
     .executes(async function(ctx: CommandContext) {
-        const val = ctx.data.data.options ? ctx.data.data.options[0].value : ctx.data.member.user.id;
+        const val = ctx.data.options.array()[0] ? ctx.data.options.array()[0].value : ctx.data.member.user.id;
 
         let gay = Math.round(Math.random()*100);
         if (val == owner_id) gay = Math.floor(gay/4);

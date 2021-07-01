@@ -4,7 +4,6 @@ import { CommandCategory } from '../types/CommandTypes';
 import { commandsRun } from '../controllers/DatabaseHandler';
 import { Command, CommandContext } from '../controllers/CommandHandler';
 import { getBadges } from '../utils';
-import Kick from '../models/Kick';
 
 const NO_USER_EMBED = new MessageEmbed()
     .setTitle(`<:eddenied:853582551323377675>Hiba! <:eddenied:853582551323377675>`)
@@ -42,10 +41,6 @@ export default new Command()
             case `szerver`:
                 const guild = ctx.data.guild
 
-                const kicks = (await Kick.find({
-                    guild: ctx.data.guildID
-                }) as any[])
-
                 const owner = bot.getUser(guild.ownerID)
 
                 embed.addField(`A szerver neve:`, guild.name, true)
@@ -57,11 +52,13 @@ export default new Command()
                     .addField(`Rangok:`, guild.roles.cache.size + ``, true)
                     .addField(`Emojik:`, guild.emojis.cache.size + ``, true)
                     .addField(`Csatornák:`, guild.channels.cache.size + ``, true)
-                    .addField(`Szöveges csatornák:`, guild.channels.cache.filter((ch) => ch.isText()).size + ``, true)
-                    .addField(`Hang csatornák:`, guild.channels.cache.filter((ch) => !ch.isText()).size + ``, true)
+                    .addField(`Szöveges csatornák:`, guild.channels.cache.filter((ch) => ch.type == `news` || ch.type == `text`).size + ``, true)
+                    .addField(`Hang csatornák:`, guild.channels.cache.filter((ch) => ch.type == `voice` || ch.type == `stage`).size + ``, true)
+                    .addField(`Kategóriák:`, guild.channels.cache.filter((ch) => ch.type == `category`).size + ``, true)
                     .addField(`Emotikonok:`, guild.emojis.cache.array().map((e) => `<${e.animated ? `a` : ``}:${e.name}:${e.id}>`).join(` `).substring(0, 1023))
                     .addField(`Rangok:`, guild.roles.cache.array().map((r) => r.name == `@everyone` ? r.name : `<@&${r.id}>`).join(` `))
-                    .addField(`Kidobások:`, kicks.length + ``, true)
+                    .addField(`Kidobások:`, `0`, true)
+                    .addField(`Parancsok lefuttatva:`, await bot.databaseHandler.getCommandsRunInGuild(guild.id), true)
                     .setThumbnail(guild.iconURL());
 
                 if (ctx.ranBy.permissionsIn(ctx.textChannel).has(`MANAGE_GUILD`)) {

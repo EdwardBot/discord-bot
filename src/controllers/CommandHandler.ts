@@ -1,10 +1,7 @@
 import axios from "axios"
-import { ButtonInteraction, Client, Collection, CommandInteraction, EmojiResolvable, GuildMember, Interaction, Message, MessageEmbed, MessagePayload, PermissionString, TextChannel } from "discord.js"
+import { ButtonInteraction, Client, Collection, CommandInteraction, EmojiResolvable, GuildMember, Interaction, Message, MessageEmbed, PermissionString, TextChannel } from "discord.js"
 import { readdir } from "fs/promises"
 import { Bot } from "../bot"
-import { InMemoryArrayCache } from "../inMemoryArrayCache"
-import { CustomCommand } from "../models/CustomCommand"
-import { CommandResponse } from "../types/CommandResponse"
 import { CommandCategory } from "../types/CommandTypes"
 import { noPermMsg } from "../utils"
 
@@ -25,8 +22,6 @@ export class CommandHandler {
     bot: Bot
     logs: Collection<string, string[]>
 
-    cache: InMemoryArrayCache
-
     constructor(bot: Bot) {
         this.bot = bot;
         bot.bot.on(`interaction`, (interaction) => {
@@ -40,18 +35,13 @@ export class CommandHandler {
                 this.onCustomCommand(msg.channel as TextChannel, cmd, msg)
             }
         })
-
-        this.cache = new InMemoryArrayCache(bot.bot.guilds.cache.size * 50)
     }
 
     /**
      * onCustomCommand
      */
     public async onCustomCommand(channel: TextChannel, command: string, message: Message) {
-        const cmd: CustomCommand = await (await this.cache.get(channel.guild.id, command))
-
-        if (cmd == undefined) return
-        channel.send(cmd.response)
+        
     }
 
     /**
@@ -179,7 +169,7 @@ export class CommandHandler {
                 process.exit(0)
 
             case `dg`:
-                await msg.channel.send(`\`\`\`${this.bot.bot.guilds.cache.array().map((g) => g.name).join(`,\n`)}\`\`\``)
+                await msg.channel.send(`\`\`\`${this.bot.bot.guilds.cache.array().map((g) => `${g.name} (${g.id})`).join(`,\n`)}\`\`\``)
                 break
 
             case `logs`:
@@ -190,6 +180,44 @@ export class CommandHandler {
                 await msg.guild.members.fetch()
                 await msg.channel.send(`Kész.`)
                 break;
+
+            case `stest`:
+                msg.channel.send({
+                    content: `Select Component Test Message`,
+                    components: [{
+                        type: 1,
+                        components: [{
+                            type: 3,
+                            customID: `selectCucc`,
+                            options: [
+                                {
+                                    label: `Option #1`,
+                                    value: `0`,
+                                    description: `Leírás #1`,
+                                    emoji: this.bot.bot.emojis.cache.get(`853648719329492992`)
+                                },
+                                {
+                                    label: `Option #2`,
+                                    value: `1`,
+                                    description: `Leírás #2`,
+                                    emoji: this.bot.bot.emojis.cache.get(`853582551700340736`)
+                                },
+                                {
+                                    label: `Option #3`,
+                                    value: `2`,
+                                    description: `Leírás #3`,
+                                    emoji: this.bot.bot.emojis.cache.get(`853584700214870017`)
+                                },
+                                {
+                                    label: `Option #4`,
+                                    value: `3`,
+                                    description: `Leírás #4`,
+                                    emoji: this.bot.bot.emojis.cache.get(`853582551323377675`)
+                                }
+                            ]
+                        }]
+                    }]
+                })
 
         }
     }

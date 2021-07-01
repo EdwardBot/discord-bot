@@ -113,12 +113,13 @@ export default new Command()
         }
     })
     .executes(async function (ctx: CommandContext) {
+        const args = ctx.data.options.array();
         const embed = new MessageEmbed()
             .setColor(`#2ed573`)
             .setTimestamp(Date.now())
             .setAuthor(`EdwardBot`, bot.bot.user.avatarURL())
             .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`);
-        switch (ctx.data.data.options[0].name) {
+        switch (args[0].name) {
             case `kategóriák`:
                 embed.setTitle(`Segítség`)
                     .setDescription(`Elérhető kategóriák:`)
@@ -156,11 +157,11 @@ export default new Command()
 
             case `dashboard`:
                 embed.setTitle(`Dashboard`)
-                    .setURL(`https://dashboard.edwardbot.tk/g/${ctx.data.guild_id}?ref=dashcmd&usr=${ctx.ranBy.user.id}`)
+                    .setURL(`https://dashboard.edwardbot.tk/guild/${ctx.data.guildID}?ref=dashcmd&usr=${ctx.ranBy.user.id}`)
                     .setDescription(`A dashboardon mindent be tudsz állítani,\nde még nagyon kezdetleges.`)
                 const row = new ActionRow();
                 row.addComponent(new ButtonComponent("Megnyitás", ButtonStyle.LINK)
-                    .setUrl(`https://dashboard.edwardbot.tk/guild/${ctx.data.guild_id}?ref=dashcmd&usr=${ctx.ranBy.user.id}`))
+                    .setUrl(`https://dashboard.edwardbot.tk/guild/${ctx.data.guildID}?ref=dashcmd&usr=${ctx.ranBy.user.id}`))
                 ctx.addRow(row)
                 break;
 
@@ -190,7 +191,7 @@ export default new Command()
 
             case `kategória`:
                 embed.setTitle(`Segítség`)
-                switch (ctx.data.data.options[0].options[0].value) {
+                switch (args[0].options.array()[0].value) {
                     case `GENERAL`:
                         embed.setDescription(`Általános, nem kategorizálható parancsok.`)
                         break;
@@ -218,8 +219,8 @@ export default new Command()
                 break;
 
             case `parancsok`:
-                if (ctx.data.data.options[0].options) {
-                    let cat = ctx.data.data.options[0].options[0].value as CommandCategory
+                if (args[0].options) {
+                    let cat = args[0].options.array()[0].value as CommandCategory
                     const cmds = getCommandsForCategory(cat);
                     if (cmds.length == 0) {
                         embed.setDescription(`Nincs parancs a kategóriában.`)
@@ -239,7 +240,7 @@ export default new Command()
                 break;
 
             case `parancs`:
-                const cmd = bot.commandHandler.commands.array().find((c) => c.name == ctx.data.data.options[0].options[0].value.toLowerCase());
+                const cmd = bot.commandHandler.commands.array().find((c) => c.name == (args[0].options.array()[0].value as string).toLowerCase());
                 if (cmd) {
                     let canRun = true;
 
