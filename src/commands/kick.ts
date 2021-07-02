@@ -1,4 +1,5 @@
 import { CommandInteraction, Guild, GuildMember, MessageEmbed, TextChannel } from 'discord.js';
+import moment from 'moment';
 import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from '../controllers/CommandHandler';
 import { bot } from '../main';
 import { ButtonInteraction, CommandCategory } from '../types/CommandTypes';
@@ -43,7 +44,6 @@ export default new Command()
                     return
                 }
                 const filter = args.slice(3).join(`_`)
-                console.log(`Filter: ${filter}`);
 
                 //Do kicking
                 const members = ctx.ranBy.guild.members.cache.filter((m) => m.user.username.toLowerCase().includes(filter.toLowerCase()))
@@ -106,17 +106,17 @@ export default new Command()
                     return
                 }
 
-                if (!member.user.dmChannel) {
-                    await member.user.createDM();
-                }
-
-                const inv = await (ctx.data.channel as TextChannel).createInvite({
-                    maxUses: 1,
-                    reason: `Kick utáni csatlakozás`,
-                })
-
-                member.user.dmChannel.send({ embeds: [embed.setDescription(`Ki lettél dobva a(z) \`${guild.name}\` szerverről\nIndok: \`${desc != undefined ? desc : `Nincs indok megadva!`}\``)] })
-                member.user.dmChannel.send(`Meghívó: https://discord.gg/${inv.code}`)
+                try {
+                    if (!member.user.dmChannel) {
+                        await member.user.createDM();
+                    }
+                    const inv = await (ctx.data.channel as TextChannel).createInvite({
+                        maxUses: 1,
+                        reason: `Kick utáni csatlakozás`,
+                    })
+                    member.user.dmChannel.send({ embeds: [embed.setDescription(`Ki lettél dobva a(z) \`${guild.name}\` szerverről\nIndok: \`${desc != undefined ? desc : `Nincs indok megadva!`}\``)] })
+                    member.user.dmChannel.send(`Meghívó: https://discord.gg/${inv.code}`)
+                } catch (e) { }
 
                 let caseId = -1
 
@@ -128,9 +128,9 @@ export default new Command()
                         desc
                     ])
                     caseId = rows[0].case
-                    await db.query(`select * from kicks where guild`)
                 } catch (e) {
-
+                    ctx.replyString(`Adatbázis hiba!`)
+                    return
                 }
 
                 member.kick(desc as string)
@@ -186,7 +186,7 @@ export default new Command()
                     .addField(`Kidobott ember: `, `\`\`\`${kicked?.username}#${kicked?.discriminator}\`\`\``)
                     .addField(`Moderátor: `, `\`\`\`${mod.username}#${mod.discriminator}\`\`\``)
                     .addField(`Indok: `, `\`\`\`${kick.reason}\`\`\``)
-                    .addField(`Időpont:`, `\`\`\`${new Date(Number.parseInt(kick.timestamp)).toLocaleString()}\`\`\``)
+                    .addField(`Időpont:`, `\`\`\`${moment(kick.timestamp as string).format(`YYYY MMMM DD[.][(]dddd[)], HH:mm`)}\`\`\``)
                     .addField(`Visszacsatlakozott:`, `\`\`\`${kick.rejoined ? `Igen` : `Nem`}\`\`\``)
                     .setFooter(`Lefuttata: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
                 ctx.replyEmbed(caseE)

@@ -1,4 +1,5 @@
 import { config } from 'dotenv'
+import { locale } from 'moment';
 
 config({
     path: `./.env`
@@ -20,6 +21,8 @@ String.prototype['toHHMMSS'] = function () {
 
 process.on(`uncaughtException`, console.error)
 process.on(`unhandledRejection`, console.error)
+
+locale(`hu`);
 
 import { Bot } from "./bot";
 

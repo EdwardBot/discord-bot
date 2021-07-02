@@ -5,7 +5,10 @@ import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from
 import { owner_id } from '../../botconfig.json'
 
 function getCommandsForCategory(category: CommandCategory): Command[] {
-    return bot.commandHandler.commands.array().filter((cmd) => cmd.category == category);
+    return bot.commandHandler.commands.array().filter((cmd) => {
+        if (category == CommandCategory.MODERATION && cmd.name == `kick`) return true
+        return cmd.category == category
+    });
 }
 
 const idToCategory = {
@@ -232,6 +235,7 @@ export default new Command()
                     categories.forEach((cat) => {
                         let tmp = "";
                         const cmds = getCommandsForCategory(cat);
+                        if (cat == CommandCategory.MODERATION) cmds.push(bot.commandHandler.commands.array().find((c) => c.name == `kick`))
                         if (cmds.length == 0) return;
                         cmds.forEach((cmd) => tmp += cmd.name + `\n`);
                         embed.addField(cat.toString(), `\`\`\`${tmp}\`\`\``, true)

@@ -1,7 +1,6 @@
 import { MessageEmbed } from 'discord.js';
 import { bot } from '../main';
 import { CommandCategory } from '../types/CommandTypes';
-import { commandsRun } from '../controllers/DatabaseHandler';
 import { Command, CommandContext } from '../controllers/CommandHandler';
 import { getBadges } from '../utils';
 

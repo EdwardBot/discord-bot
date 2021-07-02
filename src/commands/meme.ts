@@ -1,8 +1,5 @@
-import { MessageEmbed } from 'discord.js'
 import { CommandCategory } from '../types/CommandTypes'
 import { Command, CommandContext } from '../controllers/CommandHandler'
-import { bot } from '../main'
-import axios from 'axios'
 
 export default new Command()
     .setName(`meme`)
@@ -11,7 +8,7 @@ export default new Command()
     .setCategory(CommandCategory.FUN)
     .executes(async (ctx: CommandContext) => {
         ctx.setLoading()
-        const { data } = await axios.get(`https://data.edwardbot.tk/meme/random`)
+        /*const { data } = await axios.get(`https://data.edwardbot.tk/meme/random`)
         
         const embed = new MessageEmbed()
             .setTitle("Meme")
@@ -21,7 +18,8 @@ export default new Command()
             .setImage(data.image)
             .setURL(data.url)
             .setTitle(data.title)
-            .setFooter(`Készítette: u/${data.author}`);
+            .setFooter(`Készítette: u/${data.author}`);*/
 
-        ctx.replyEmbed(embed);
+        /*ctx.replyEmbed(embed);*/
+        ctx.replyString(`<:eddenied:853582551323377675> A Reddit sajnos ideglenesen ratelimitelt minket, ezért nem tudunk mémekkel szolgálni.`)
     })

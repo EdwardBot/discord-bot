@@ -40,7 +40,7 @@ export default new Command()
                         .setTitle(`Beállítások`)
                         .setColor(`GREEN`)
                         .setFooter(`Lefuttatta: ${ctx.ranBy.user.username}#${ctx.ranBy.user.discriminator}`)
-                        .setDescription(gConf[`${chanType.dbId}Channel`] == 0 ? `Nincs Üdvözlő csatorna megadva!`
+                        .setDescription(gConf[`${chanType.dbId}Channel`] == 0 ? `Nincs ${chanType.locName} csatorna megadva!`
                             : `${chanType.locName} csatorna: <#${gConf[`${chanType.dbId}Channel`]}>`)
 
                     ctx.replyEmbed(embed)
@@ -76,7 +76,6 @@ export default new Command()
             case `funkciók`:
                 const args = category.options.array()
                 const type = chanTypeConv[args[0].value as string]
-                const state = args[1].value as boolean
                 let data;
                 try {
                     const { rows } = await db.query(`SELECT * FROM "guild-configs" WHERE "GuildId"=$1`, [ctx.data.guildID])
@@ -85,6 +84,13 @@ export default new Command()
                     ctx.replyString(`Hiba!`)
                     return
                 }
+                if (args[1] == undefined) {
+                    const isOn = (data.AllowedFeatures & 1 << type.bit) == type.bit
+                    ctx.replyString(`${type.locName} csatorna ${isOn ? `bekapcsolva` : `kikapcsolva`}!`)
+                    return
+                }
+                const state = args[1].value as boolean
+                
                 let num = state ? data.AllowedFeatures | 1 << type.bit : data.AllowedFeatures ^ 1 << type.bit;
 
                 try {
@@ -96,7 +102,7 @@ export default new Command()
                     ctx.replyString(`Hiba!`)
                     return
                 }
-                ctx.replyString(`${type.locName} Csatorna ${state ? `bekapcsolva` : `kikapcsolva`}!`)
+                ctx.replyString(`${type.locName} csatorna ${state ? `bekapcsolva` : `kikapcsolva`}!`)
                 break
 
 

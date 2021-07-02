@@ -3,8 +3,6 @@ import { Bot } from "../bot";
 
 import { Client } from 'pg'
 
-export let commandsRun = 0;
-
 /**
  * DatabaseHandler - Handles db stuff
  * @author Bendi
@@ -41,11 +39,27 @@ export class DatabaseHandler {
      */
     public retrogen() {
         console.log(`Retrogen`);
-        
+
         this.bot.bot.guilds.cache.forEach(async (guild) => {
+            await guild.members.fetch({
+                limit: 1000
+            })
+            guild.members.cache.forEach(async (m) => {
+                try {
+                    if (!m.user.bot) {
+                        const { rows } = await this.client.query(`select * from wallets where guild=$1 and userid=$2`, [guild.id, m.user.id])
+
+                        if (rows.length > 0) return
+                        await this.client.query(`insert into wallets (guild,userid) values ($1,$2)`, [guild.id, m.user.id])
+                        console.log(`Created wallet for ${m.user.username}#${m.user.discriminator}(${m.user.id})!`);
+                    }
+                } catch (e) {
+                    console.error(`Error: ${e}`)
+                }
+            })
             try {
                 const { rows } = await this.client.query(`select * from "guild-configs" where "GuildId"=$1`, [guild.id])
-            
+
                 if (rows.length > 0) return;
                 await this.client.query(`insert into "guild-configs" ("GuildId", "BotAdmins") values ($1,$2)`, [guild.id, [guild.ownerID]])
             } catch (e) {

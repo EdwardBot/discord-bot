@@ -13,7 +13,7 @@ export class Bot {
     constructor() {
         this.bot = new Client({
             partials: [ "CHANNEL", "GUILD_MEMBER", "MESSAGE", "REACTION", "USER"],
-            intents: [ "GUILD_MESSAGES", "GUILDS" ]
+            intents: [ "GUILD_MESSAGES", "GUILDS", `GUILD_MEMBERS`, `GUILD_BANS`, `GUILD_MESSAGE_REACTIONS` ]
         });
         this.commandHandler = new CommandHandler(this);
         this.databaseHandler = new DatabaseHandler(this);
@@ -100,6 +100,7 @@ export class Bot {
             }
             this.updatePresence();
         })
+        this.memberHandler.init()
         this.bot.login(process.env.TOKEN)
     }
 
@@ -109,7 +110,7 @@ export class Bot {
     public updatePresence() {
         this.bot.user.setPresence({
             activities: [{
-                name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help ${process.env.MODE == `DEV` ? `Fejlesztés alatt` : ``}`,
+                name: `a parancsokat ${this.bot.guilds.cache.size} szerveren | /help ${process.env.PRODUCION == `` ? `Fejlesztés alatt` : ``}`,
                 type: `WATCHING`,
                 url: `https://edwardbot.tk`
             }]
@@ -123,46 +124,16 @@ export class Bot {
         return this.bot.ws.ping;
     }
 
-    /*/**
-     * migrate - retrogen for db data
-     */
-    /*public async migrate() {
-        console.log(`[RetroGen:main] Starting migration check.`);
-        
-        await this.bot.guilds.cache.forEach(async (g) => {
-            const conf = await GuildConfig.findOne({
-                guildId: g.id
-            })
-            if (conf == undefined) {
-                console.log(`[RetroGen:guild] Generating for guild: '${g.name}'`);
-                this.migrateGuild(g)
-            }
-            console.log(`[RetroGen:guild] Listing users for '${g.name}'`);
-            await g.members.cache.forEach(async (m) => {
-                if (m.user.bot) return
-                const w = await Wallet.findOne({
-                    guildId: g.id,
-                    userId: m.user.id
-                })
-
-                if (w != undefined) return
-                new Wallet({
-                    guildId: g.id,
-                    userId: m.user.id,
-                    balance: 0,
-                    xp: 0,
-                    lvl: 0,
-                    messages: 0
-                }).save()
-                console.log(`[RetroGen:wallet] Creating wallet for '${m.user.username}#${m.user.discriminator}'`);
-            });
-        })
-        console.log(`[RetroGen:main] Finished migration check.`);
-    }*/
-
     public async ready() {
         console.log(`Logged in as ${this.bot?.user?.username}#${this?.bot?.user?.discriminator}`);
         this.updatePresence();
         this.databaseHandler.retrogen()
+    }
+
+    /**
+     * getColor
+     */
+    public getColor(g: Guild): number {
+        return g.members.cache.get(this.bot.user.id).roles.highest.color
     }
 }

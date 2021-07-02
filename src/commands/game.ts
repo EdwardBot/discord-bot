@@ -1,6 +1,6 @@
 import axios from "axios";
-import { VoiceChannel } from "discord.js";
-import { Command, CommandContext } from "../controllers/CommandHandler";
+import { ApplicationResolvable, VoiceChannel } from "discord.js";
+import { ActionRow, ButtonComponent, ButtonStyle, Command, CommandContext } from "../controllers/CommandHandler";
 import { CommandCategory } from "../types/CommandTypes";
 
 export default new Command()
@@ -17,18 +17,17 @@ export default new Command()
         const channel = ctx.ranBy.guild.channels.cache.get(channel_id as `${bigint}`)
 
         if (channel) {
-            if (channel instanceof VoiceChannel) {
-                const { data } = await axios.post(`https://discord.com/api/v6/channels/${channel_id}/invites`, {
-                    target_type: 2,
-                    target_application_id: game_id
-                }, {
-                    headers: {
-                        'Authorization': `Bot ${process.env.TOKEN}`
-                    }
+            if (channel.type == `voice`) {
+                const data = await channel.createInvite({
+                    targetType: 2,
+                    targetApplication: game_id as ApplicationResolvable
                 })
-                ctx.replyString(`Itt az invite: https://discord.gg/${data.code}`)
+                const r = new ActionRow();
+                r.addComponent(new ButtonComponent(`Csatlakozás`, ButtonStyle.LINK).setUrl(`https://discord.gg/${data.code}`))
+                ctx.addRow(r)
+                ctx.replyString(`** **`)
             } else {
-                ctx.replyString(`Csak hang csatornában használható.`)
+                ctx.replyString(`Kérlek hangcsatornát válassz!`)
             }
         } else {
             ctx.replyString(`Hiba, a csatorna nem található!`);
