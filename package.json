@@ -7,7 +7,7 @@
         "axios": "^0.28.0",
         "discord.js": "^12.5.1",
         "mc-server-status": "^2.0.2",
-        "mongoose": "^5.12.2",
+        "mongoose": "^6.13.6",
         "nerdamer": "^1.1.10"
     },
     "devDependencies": {
